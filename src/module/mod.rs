@@ -1,6 +1,5 @@
 use openmpt_sys;
 use std::os::raw::*;
-use std::ptr;
 
 mod logging;
 
@@ -26,9 +25,9 @@ impl CouldOpenEffort {
 	}
 }
 
-pub fn could_open_propability (stream : &mut Vec<u8>, effort : CouldOpenEffort, logger : logging::Logger) -> f64 {
+pub fn could_open_propability (stream : &mut Vec<u8>, effort : CouldOpenEffort, logger : logging::Logger<()>) -> f64 {
 	unsafe {
-		openmpt_sys::openmpt_could_open_propability(openmpt_sys::openmpt_stream_callbacks::default(), stream.as_mut_ptr() as *mut _, effort.value(), logger.log_func(), ptr::null_mut())
+		openmpt_sys::openmpt_could_open_propability(openmpt_sys::openmpt_stream_callbacks::default(), stream.as_mut_ptr() as *mut _, effort.value(), logger.log_func(), logger.logging_context())
 	}
 }
 
