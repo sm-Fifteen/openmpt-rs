@@ -2,6 +2,34 @@ use openmpt_sys;
 use std::os::raw::*;
 
 mod logging;
+mod ctls;
+
+pub struct Module {
+	inner : *mut openmpt_sys::openmpt_module,
+}
+
+impl Module {
+	pub fn create_from_memory(stream : &mut Vec<u8>, logger : logging::Logger<()>, init_ctls : &[ctls::Ctl]) -> Result<Module, ()> {
+		let module_ptr = unsafe {
+				openmpt_sys::openmpt_module_create_from_memory(stream.as_ptr() as *const _, stream.len(), logger.log_func(),
+						logger.logging_context(), ctls::to_initial_ctl_ptr(init_ctls))
+		};
+
+		if module_ptr.is_null() {
+			Err(())
+		} else {
+			Ok(Module { inner : module_ptr })
+		}
+	}
+}
+
+impl Drop for Module {
+	fn drop(&mut self) {
+		unsafe {
+			openmpt_sys::openmpt_module_destroy(self.inner);
+		}
+	}
+}
 
 pub enum CouldOpenEffort {
 	NoEffort,
@@ -33,14 +61,18 @@ pub fn could_open_propability (stream : &mut Vec<u8>, effort : CouldOpenEffort, 
 
 #[cfg(test)]
 mod tests {
+	use super::*;
+	use std::fs::File;
+	use std::io::prelude::*;
+
 	#[test]
 	fn empty_file_is_invalid() {
 		let mut fake_file = Vec::new();
-		let lazy_prob = super::could_open_propability(&mut fake_file, super::CouldOpenEffort::NoEffort, super::logging::Logger::None);
-		let probe_prob = super::could_open_propability(&mut fake_file, super::CouldOpenEffort::ProbeFileHeader, super::logging::Logger::None);
-		let header_prob = super::could_open_propability(&mut fake_file, super::CouldOpenEffort::VerifyHeader, super::logging::Logger::None);
-		let load_partial_prob = super::could_open_propability(&mut fake_file, super::CouldOpenEffort::LoadWithoutPatternOrPluginData, super::logging::Logger::None);
-		let load_complete_prob = super::could_open_propability(&mut fake_file, super::CouldOpenEffort::LoadCompleteModule, super::logging::Logger::None);
+		let lazy_prob = could_open_propability(&mut fake_file, CouldOpenEffort::NoEffort, logging::Logger::None);
+		let probe_prob = could_open_propability(&mut fake_file, CouldOpenEffort::ProbeFileHeader, logging::Logger::None);
+		let header_prob = could_open_propability(&mut fake_file, CouldOpenEffort::VerifyHeader, logging::Logger::None);
+		let load_partial_prob = could_open_propability(&mut fake_file, CouldOpenEffort::LoadWithoutPatternOrPluginData, logging::Logger::None);
+		let load_complete_prob = could_open_propability(&mut fake_file, CouldOpenEffort::LoadCompleteModule, logging::Logger::None);
 		
 		println!("Probability of opening an empty file (lazy/probe/verify_header/load_partial/load_complete) : {}/{}/{}/{}/{}",
 			lazy_prob, probe_prob, header_prob, load_partial_prob, load_complete_prob);
@@ -50,5 +82,24 @@ mod tests {
 		assert!(header_prob == 0.0);
 		assert!(load_partial_prob == 0.0);
 		assert!(load_complete_prob == 0.0);
+	}
+
+	#[test]
+	fn text_file_fails_to_load() {
+		let module = load_file_as_module("Cargo.toml");
+		assert!(module.is_err());
+	}
+
+	#[test]
+	fn dummy_file_loads_successfully() {
+		let module = load_file_as_module("empty_module.xm");
+		assert!(module.is_ok());
+	}
+
+	fn load_file_as_module(file_path : &str) -> Result<Module, ()> {
+		let mut f = File::open(file_path).expect("file not found");
+		let mut buf = Vec::new();
+		f.read_to_end(&mut buf);
+		Module::create_from_memory(&mut buf, logging::Logger::StdErr(()), &[])
 	}
 }
