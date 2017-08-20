@@ -1,0 +1,7 @@
+[package]
+name = "openmpt"
+version = "0.1.0"
+authors = ["sm-Fifteen <riboshom@hotmail.com>"]
+
+[dependencies]
+openmpt-sys = "0.1.0"
