@@ -1,8 +1,11 @@
 use openmpt_sys;
+use std::ops::Deref;
 use std::os::raw::*;
 
 mod logging;
 mod ctls;
+mod metadata;
+#[cfg(test)] mod test_helper;
 
 pub struct Module {
 	inner : *mut openmpt_sys::openmpt_module,
@@ -62,8 +65,7 @@ pub fn could_open_propability (stream : &mut Vec<u8>, effort : CouldOpenEffort, 
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use std::fs::File;
-	use std::io::prelude::*;
+	use super::test_helper;
 
 	#[test]
 	fn empty_file_is_invalid() {
@@ -86,20 +88,13 @@ mod tests {
 
 	#[test]
 	fn text_file_fails_to_load() {
-		let module = load_file_as_module("Cargo.toml");
+		let module = test_helper::load_file_as_module("Cargo.toml");
 		assert!(module.is_err());
 	}
 
 	#[test]
 	fn dummy_file_loads_successfully() {
-		let module = load_file_as_module("empty_module.xm");
+		let module = test_helper::load_file_as_module("empty_module.xm");
 		assert!(module.is_ok());
-	}
-
-	fn load_file_as_module(file_path : &str) -> Result<Module, ()> {
-		let mut f = File::open(file_path).expect("file not found");
-		let mut buf = Vec::new();
-		f.read_to_end(&mut buf);
-		Module::create_from_memory(&mut buf, logging::Logger::StdErr(()), &[])
 	}
 }
