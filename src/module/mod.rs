@@ -5,6 +5,7 @@ use std::os::raw::*;
 mod logging;
 mod ctls;
 mod metadata;
+mod iteration;
 #[cfg(test)] mod test_helper;
 
 pub struct Module {
