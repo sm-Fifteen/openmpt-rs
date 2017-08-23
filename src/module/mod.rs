@@ -5,6 +5,7 @@ use std::os::raw::*;
 mod logging;
 mod ctls;
 mod metadata;
+mod mod_command;
 mod iteration;
 #[cfg(test)] mod test_helper;
 
