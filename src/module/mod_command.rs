@@ -1,3 +1,17 @@
+// All the consts and enums here are from openmpt's soundlib/modcommand.h
+// They are not part of the public API and change to OpenMPT may break those without warning.
+// They are only available here for the sake of conveinience and completeness.
+
+const NOTE_NONE:u8 = 0;
+const NOTE_MIN:u8 = 1;
+const NOTE_MAX:u8 = 120;
+const NOTE_MIDDLEC:u8 = 5 * 12 + NOTE_MIN;
+const NOTE_KEYOFF:u8 = 0xFF;
+const NOTE_NOTECUT:u8 = 0xFE;
+const NOTE_FADE:u8 = 0xFD;
+const NOTE_PC:u8 = 0xFC;
+const NOTE_PCS:u8 = 0xFB;
+
 pub struct ModCommand {
 	note : Note,
 	instr: u8,
@@ -6,12 +20,63 @@ pub struct ModCommand {
 }
 
 impl ModCommand {
-	pub fn new(note : u8, instr : u8, volcmd : u8, command : u8, vol : u8, param : u8) -> ModCommand {
+	pub fn new(note : u8, instr : u8, volcmd : u8, command : u8, vol : u8, param : u8) -> Result<ModCommand, String> {
+		let note_type = ModCommand::note_from_value(note);
+		let note_type = match note_type {
+			Ok(n) => n,
+			Err(e) => return Err(e),
+		};
+
+		let vol_type = ModCommand::volume_from_command_param(volcmd, vol);
+		let vol_type = match vol_type {
+			Ok(v) => v,
+			Err(e) => return Err(e),
+		};
+
+		let effect_type = ModCommand::effect_from_command_param(command, param);
+		let effect_type = match effect_type {
+			Ok(c) => c,
+			Err(e) => return Err(e),
+		};
+
+		Ok(ModCommand {
+			note: note_type,
+			instr: instr,
+			volcmd: vol_type,
+			command: effect_type,
+		})
+	}
+
+	fn note_from_value(note_val : u8) -> Result<Note, String> {
+		match note_val {
+			NOTE_NONE => Ok(Note::None),
+			NOTE_MIN...NOTE_MAX => Ok(Note::Note(note_val)),
+			NOTE_KEYOFF => Ok(Note::Special(SpecialNote::KeyOff)),
+			NOTE_NOTECUT => Ok(Note::Special(SpecialNote::NoteCut)),
+			NOTE_FADE => Ok(Note::Special(SpecialNote::Fade)),
+			NOTE_PC => Ok(Note::Special(SpecialNote::ParamControl)),
+			NOTE_PCS => Ok(Note::Special(SpecialNote::ParamControlSmooth)),
+			_ => Err("Invalid note".to_owned()),
+		}
+	}
+
+	fn effect_from_command_param(cmd : u8, param : u8) -> Result<EffectCommand, String> {
 		unimplemented!();
+		match cmd {
+			0 => Ok(EffectCommand::None),
+			_ => Err("Invalid effect".to_owned()),
+		}
+	}
+
+	fn volume_from_command_param(cmd : u8, param : u8) -> Result<VolumeCommand, String> {
+		unimplemented!();
+		match cmd {
+			0 => Ok(VolumeCommand::None),
+			_ => Err("Invalid volume command".to_owned()),
+		}
 	}
 }
 
-// Middle C (C4) is 60 - 1
 pub enum Note {
 	None,
 	Note(u8),
