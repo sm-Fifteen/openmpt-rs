@@ -69,10 +69,24 @@ impl ModCommand {
 	}
 
 	fn volume_from_command_param(cmd : u8, param : u8) -> Result<VolumeCommand, String> {
-		unimplemented!();
 		match cmd {
-			0 => Ok(VolumeCommand::None),
-			_ => Err("Invalid volume command".to_owned()),
+			0  => Ok(VolumeCommand::None),
+			1  => Ok(VolumeCommand::Volume(param)),
+			2  => Ok(VolumeCommand::Panning(param)),
+			3  => Ok(VolumeCommand::VolSlideUp(param)),
+			4  => Ok(VolumeCommand::VolSlideDown(param)),
+			5  => Ok(VolumeCommand::FineVolUp(param)),
+			6  => Ok(VolumeCommand::FineVolDown(param)),
+			7  => Ok(VolumeCommand::VibratoSpeed(param)),
+			8  => Ok(VolumeCommand::VibratoDepth(param)),
+			9  => Ok(VolumeCommand::PanSlideLeft(param)),
+			10 => Ok(VolumeCommand::PanSlideRight(param)),
+			11 => Ok(VolumeCommand::TonePortamento(param)),
+			12 => Ok(VolumeCommand::PortaUp(param)),
+			13 => Ok(VolumeCommand::PortaDown(param)),
+			14 => Ok(VolumeCommand::DelayCut(param)),
+			15 => Ok(VolumeCommand::Offset(param)),
+			_  => Err("Invalid volume command".to_owned()),
 		}
 	}
 }
