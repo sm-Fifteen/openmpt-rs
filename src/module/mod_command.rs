@@ -61,9 +61,52 @@ impl ModCommand {
 	}
 
 	fn effect_from_command_param(cmd : u8, param : u8) -> Result<EffectCommand, String> {
-		unimplemented!();
+		let nibbleX = (param & 0xF0) >> 4;
+		let nibbleY = param & 0x0F;
+
 		match cmd {
-			0 => Ok(EffectCommand::None),
+			0  => Ok(EffectCommand::None),
+			1  => Ok(EffectCommand::Arpeggio(nibbleX, nibbleY)),
+			2  => Ok(EffectCommand::PortamentoUp(param)),
+			3  => Ok(EffectCommand::PortamentoDown(param)),
+			4  => Ok(EffectCommand::TonePortamento(param)),
+			5  => Ok(EffectCommand::Vibrato(nibbleX, nibbleY)),
+			6  => Ok(EffectCommand::TonePortaVol(nibbleX, nibbleY)),
+			7  => Ok(EffectCommand::VibratoVol(nibbleX, nibbleY)),
+			8  => Ok(EffectCommand::Tremolo(nibbleX, nibbleY)),
+			9  => Ok(EffectCommand::Panning8(param)),
+			10 => Ok(EffectCommand::Offset(param)),
+			11 => Ok(EffectCommand::VolumeSlide(nibbleX, nibbleY)),
+			12 => Ok(EffectCommand::PositionJump(param)),
+			13 => Ok(EffectCommand::Volume(param)),
+			14 => Ok(EffectCommand::PatternBreak(param)),
+			15 => Ok(EffectCommand::Retrig(nibbleX, nibbleY)),
+			16 => Ok(EffectCommand::Speed(param)),
+			17 => Ok(EffectCommand::Tempo(param)),
+			18 => Ok(EffectCommand::Tremor(nibbleX, nibbleY)),
+			19 => Ok(EffectCommand::ModCmdEX(nibbleX, nibbleY)),
+			20 => Ok(EffectCommand::S3MCmdEX(nibbleX, nibbleY)),
+			21 => Ok(EffectCommand::ChannelVolume(param)),
+			22 => Ok(EffectCommand::ChannelVolSlide(nibbleX, nibbleY)),
+			23 => Ok(EffectCommand::GlobalVolume(param)),
+			24 => Ok(EffectCommand::GlobalVolSlide(nibbleX, nibbleY)),
+			25 => Ok(EffectCommand::KeyOff(param)),
+			26 => Ok(EffectCommand::FineVibrato(nibbleX, nibbleY)),
+			27 => Ok(EffectCommand::Panbrello(nibbleX, nibbleY)),
+			28 => Ok(EffectCommand::XFinePortaUpDown(nibbleX, nibbleY)),
+			29 => Ok(EffectCommand::PanningSlide(nibbleX, nibbleY)),
+			30 => Ok(EffectCommand::SetEnvPosition(param)),
+			31 => Ok(EffectCommand::Midi(param)),
+			32 => Ok(EffectCommand::SmoothMidi(param)),
+			33 => Ok(EffectCommand::DelayCut(nibbleX, nibbleY)),
+			34 => Ok(EffectCommand::XParam(param)),
+			35 => Ok(EffectCommand::NoteSlideUp(nibbleX, nibbleY)),
+			36 => Ok(EffectCommand::NoteSlideUpRetrig(nibbleX, nibbleY)),
+			37 => Ok(EffectCommand::NoteSlideDown(nibbleX, nibbleY)),
+			38 => Ok(EffectCommand::NoteSlideDownRetrig(nibbleX, nibbleY)),
+			39 => Ok(EffectCommand::ReverseOffset(param)),
+			40 => Ok(EffectCommand::DBMEcho(nibbleX, nibbleY)),
+			41 => Ok(EffectCommand::OffsetPercentage(param)),
 			_ => Err("Invalid effect".to_owned()),
 		}
 	}
