@@ -6,7 +6,7 @@ pub struct ModCommand {
 }
 
 impl ModCommand {
-	fn new(note : Note, instr : u8, volcmd : u8, vol : u8, command : u8, param : u8) -> ModCommand {
+	pub fn new(note : u8, instr : u8, volcmd : u8, command : u8, vol : u8, param : u8) -> ModCommand {
 		unimplemented!();
 	}
 }

@@ -11,65 +11,115 @@ pub struct Pattern<'m> {
 	num: i32,
 }
 
-impl<'m> fmt::Debug for Pattern<'m> {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "P{}", self.num)
-    }
-}
-
-pub struct OrderedPatterns<'m> {
-	module: &'m Module,
-	iter: Range<i32>,
-}
-
-impl<'m> Iterator for OrderedPatterns<'m> {
-	type Item = Pattern<'m>;
-
-	fn next(&mut self) -> Option<Pattern<'m>> {
-		self.iter.next().map(|order_num| {
-			let pattern_num = self.module.get_order_pattern(order_num)
-					.expect("Failed to convert order index into pattern index");
-			Pattern { module: self.module, num: pattern_num }
-		})
-	}
+pub struct Row<'m> {
+	pattern: Pattern<'m>,
+	num: i32,
 }
 
 impl Module {
-	fn get_order_pattern (&self, order_num: i32) -> Option<i32> {
+	pub fn get_pattern_by_order(&self, order_num: i32) -> Option<Pattern> {
 		let pattern_num = unsafe {
 			openmpt_sys::openmpt_module_get_order_pattern(self.inner, order_num)
 		};
 
-		if pattern_num < 0 { None } else { Some(pattern_num) }
+		if pattern_num < 0 {
+			None
+		} else {
+			Some(Pattern{ num : pattern_num, module: self })
+		}
 	}
 
-	pub fn get_pattern_order<'a> (&'a self) -> OrderedPatterns {
-		let num_order = unsafe {
-			openmpt_sys::openmpt_module_get_num_orders(self.inner)
-		};
+	pub fn get_pattern_by_number (&self, pattern_num: i32) -> Option<Pattern> {
+		if pattern_num >= self.get_num_patterns() {
+			None
+		} else if pattern_num < 0 {
+			None
+		} else {
+			Some(Pattern{ num : pattern_num, module: self })
+		}
+	}
 
-		OrderedPatterns {
-			module: self,
-			iter: (0..num_order),
+	pub fn get_num_patterns (&self) -> i32 {
+		unsafe {
+			openmpt_sys::openmpt_module_get_num_patterns(self.inner)
+		}
+	}
+
+	pub fn get_num_orders (&self) -> i32 {
+		unsafe {
+			openmpt_sys::openmpt_module_get_num_orders(self.inner)
+		}
+	}
+
+	pub fn get_num_channels (&self) -> i32 {
+		unsafe {
+			openmpt_sys::openmpt_module_get_num_channels(self.inner)
+		}
+	}
+
+	pub fn get_num_instruments (&self) -> i32 {
+		unsafe {
+			openmpt_sys::openmpt_module_get_num_instruments(self.inner)
 		}
 	}
 }
 
 impl<'m> Pattern<'m> {
-	pub fn get_rows(self) -> Range<i32> {
-		let pattern_num_rows = unsafe {
-			openmpt_sys::openmpt_module_get_pattern_num_rows(self.module.inner, self.num)
-		};
+	pub fn get_row_by_number (self, row_num: i32) -> Option<Row<'m>> {
+		let pattern_num_rows = self.get_num_rows();
 
 		assert_ne!(pattern_num_rows, 0); // Pattern does not exist
 		
-		(0..pattern_num_rows)
+		if row_num >= pattern_num_rows {
+			None
+		} else if row_num < 0 {
+			None
+		} else {
+			Some(Row{ num : row_num, pattern: self })
+		}
 	}
 
-	pub fn get_row_channel_command(self, row: i32, channel: i32) -> ModCommand {
-		unimplemented!()
+	pub fn get_num_rows(self) -> i32 {
+		unsafe {
+			openmpt_sys::openmpt_module_get_pattern_num_rows(self.module.inner, self.num)
+		}
 	}
 }
+
+impl<'m> Row<'m> {
+	pub fn get_command_by_channel (&self, channel_num: i32) -> Option<ModCommand> {
+		assert!(self.num < self.pattern.get_num_rows());
+		assert!(self.num >= 0);
+
+		let num_channels = self.pattern.module.get_num_channels();
+
+		if channel_num < 0 || channel_num >= num_channels {
+			return None
+		}
+
+		// TODO : Add aliases to the macros in openmpt_sys
+		Some(ModCommand::new(
+			self.get_command(channel_num, 0), // Note
+			self.get_command(channel_num, 1), // Instrument
+			self.get_command(channel_num, 2), // Vol effect
+			self.get_command(channel_num, 3), // Effect
+			self.get_command(channel_num, 4), // Volume
+			self.get_command(channel_num, 5), // Parameter
+		))
+	}
+
+	fn get_command(&self, channel_num: i32, command_id: ::std::os::raw::c_int) -> u8 {
+		unsafe{
+			openmpt_sys::openmpt_module_get_pattern_row_channel_command(
+				self.pattern.module.inner,
+				self.pattern.num,
+				self.num,
+				channel_num,
+				command_id
+			)
+		}
+	}
+} 
 
 
 #[cfg(test)]
@@ -79,8 +129,8 @@ mod tests {
 
 	#[test]
 	fn dummy_file_has_valid_order() {
-		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
-		let order = module.get_pattern_order();
-		order.collect::<Vec<_>>();
+		//let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		//let order = module.get_pattern_order();
+		//order.collect::<Vec<_>>();
 	}
 }
