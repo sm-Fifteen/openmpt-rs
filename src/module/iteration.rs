@@ -232,9 +232,34 @@ mod tests {
 	use super::super::test_helper;
 
 	#[test]
-	fn dummy_file_has_valid_order() {
-		//let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
-		//let order = module.get_pattern_order();
-		//order.collect::<Vec<_>>();
+	fn unatco_iterative_reading() {
+		iterative_reading("UNATCO.it");
+	}
+
+	fn iterative_reading(file_name : &str) {
+		let module = test_helper::load_file_as_module(file_name).unwrap();
+		let num_orders = module.get_num_orders();
+		let num_channels = module.get_num_channels();
+
+		for order_num in 0..num_orders {
+			let pattern = module.get_pattern_by_order(order_num).unwrap();
+			let num_rows = pattern.get_num_rows();
+
+			println!("Checking pattern #{} ({} rows, {} channels)", order_num, num_rows, num_channels);
+
+			for row_num in 0..num_rows {
+				let row = pattern.get_row_by_number(row_num).unwrap();
+				let mut row_string = String::new();
+
+				for channel_num in 0..num_channels {
+					let cell = row.get_cell_by_channel(channel_num).unwrap();
+					assert!(cell.get_data().is_ok());
+
+					if channel_num != 0 { row_string.push_str("|"); }
+					row_string.push_str(cell.get_formatted(0, false).as_str());
+				}
+				// println!("{}", row_string);
+			}
+		}
 	}
 }
