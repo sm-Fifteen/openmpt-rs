@@ -77,6 +77,30 @@ impl Module {
 			openmpt_sys::openmpt_module_get_num_subsongs(self.inner)
 		}
 	}
+
+	pub fn get_instrument_name (&self, instrument_num: i32) -> String {
+		get_string!{
+			openmpt_sys::openmpt_module_get_instrument_name(self.inner, instrument_num)
+		}
+	}
+	
+	pub fn get_sample_name (&self, sample_num: i32) -> String {
+		get_string!{
+			openmpt_sys::openmpt_module_get_sample_name(self.inner, sample_num)
+		}
+	}
+
+	pub fn get_channel_name (&self, channel_num: i32) -> String {
+		get_string!{
+			openmpt_sys::openmpt_module_get_channel_name(self.inner, channel_num)
+		}
+	}
+
+	pub fn get_subsong_name (&self, subsong_num: i32) -> String {
+		get_string!{
+			openmpt_sys::openmpt_module_get_subsong_name(self.inner, subsong_num)
+		}
+	}
 }
 
 impl<'m> Pattern<'m> {
@@ -89,6 +113,13 @@ impl<'m> Pattern<'m> {
 			None
 		} else {
 			Some(Row{ num : row_num, pattern: self })
+		}
+	}
+
+	pub fn get_name (&self) -> String {
+		// Order names apparently just gives you the name of the pattern
+		get_string!{
+			openmpt_sys::openmpt_module_get_pattern_name(self.module.inner, self.num)
 		}
 	}
 
