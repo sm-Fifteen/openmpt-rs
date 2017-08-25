@@ -1,7 +1,5 @@
 use super::Module;
 use openmpt_sys;
-use std::ffi::CString;
-use std::ffi::CStr;
 
 #[derive(Debug)]
 pub enum MetadataKey {
@@ -39,15 +37,10 @@ impl MetadataKey {
 
 impl Module {
 	pub fn get_metadata(&self, key : MetadataKey) -> Option<String> {
-		let cstr = CString::new(key.to_str()).unwrap();
-		let cstr_ptr = cstr.as_ptr();
-		let value_string = unsafe {
-			// openmpt expects and returns utf-8 strings
-			let return_ptr = openmpt_sys::openmpt_module_get_metadata(self.inner, cstr_ptr);
-			let return_str = CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
-			openmpt_sys::openmpt_free_string(return_ptr);
-			return_str
-		};
+		let key = key.to_str();
+		let value_string = get_string_with_string! (key, {
+			openmpt_sys::openmpt_module_get_metadata(self.inner, key)
+		});
 
 		if value_string.len() == 0 {
 			None
@@ -57,11 +50,8 @@ impl Module {
 	}
 
 	fn get_metadata_keys(&self) -> String {
-		unsafe {
-			let return_ptr = openmpt_sys::openmpt_module_get_metadata_keys(self.inner);
-			let return_str = CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
-			openmpt_sys::openmpt_free_string(return_ptr);
-			return_str
+		get_string! {
+			openmpt_sys::openmpt_module_get_metadata_keys(self.inner)
 		}
 	}
 }

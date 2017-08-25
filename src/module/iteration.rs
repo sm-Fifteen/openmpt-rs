@@ -4,8 +4,6 @@ use std::iter::Iterator;
 use std::ops::Range;
 use super::mod_command::ModCommand;
 use std::fmt;
-use std::ffi::CString;
-use std::ffi::CStr;
 use std::os::raw::c_int;
 
 pub struct Pattern<'m> {
@@ -141,65 +139,53 @@ impl <'m> Cell<'m> {
 	}
 
 	pub fn get_formatted(&self, width: usize, pad: bool) -> String {
-		unsafe {
-			let return_ptr = openmpt_sys::openmpt_module_format_pattern_row_channel(
+		get_string!({
+			openmpt_sys::openmpt_module_format_pattern_row_channel(
 				self.row.pattern.module.inner,
 				self.row.pattern.num,
 				self.row.num,
 				self.channel_num,
 				width,
 				pad as c_int
-			);
-			let return_str = CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
-			openmpt_sys::openmpt_free_string(return_ptr);
-			return_str
-		}
+			)
+		})
 	}
 
 	pub fn get_formatted_by_command(&self, command: ModuleCommandIndex) -> String {
-		unsafe {
-			let return_ptr = openmpt_sys::openmpt_module_format_pattern_row_channel_command(
+		get_string!({
+			openmpt_sys::openmpt_module_format_pattern_row_channel_command(
 				self.row.pattern.module.inner,
 				self.row.pattern.num,
 				self.row.num,
 				self.channel_num,
 				command.value()
-			);
-			let return_str = CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
-			openmpt_sys::openmpt_free_string(return_ptr);
-			return_str
-		}
+			)
+		})
 	}
 
 	pub fn get_highlight(&self, width: usize, pad: bool) -> String {
-		unsafe {
-			let return_ptr = openmpt_sys::openmpt_module_highlight_pattern_row_channel(
+		get_string!({
+			openmpt_sys::openmpt_module_highlight_pattern_row_channel(
 				self.row.pattern.module.inner,
 				self.row.pattern.num,
 				self.row.num,
 				self.channel_num,
 				width,
 				pad as c_int
-			);
-			let return_str = CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
-			openmpt_sys::openmpt_free_string(return_ptr);
-			return_str
-		}
+			)
+		})
 	}
 
 	pub fn get_highlight_by_command(&self, command: ModuleCommandIndex) -> String {
-		unsafe {
-			let return_ptr = openmpt_sys::openmpt_module_highlight_pattern_row_channel_command(
+		get_string!({
+			openmpt_sys::openmpt_module_highlight_pattern_row_channel_command(
 				self.row.pattern.module.inner,
 				self.row.pattern.num,
 				self.row.num,
 				self.channel_num,
 				command.value()
-			);
-			let return_str = CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
-			openmpt_sys::openmpt_free_string(return_ptr);
-			return_str
-		}
+			)
+		})
 	}
 }
 
@@ -258,7 +244,7 @@ mod tests {
 					if channel_num != 0 { row_string.push_str("|"); }
 					row_string.push_str(cell.get_formatted(0, false).as_str());
 				}
-				// println!("{}", row_string);
+				//println!("{}", row_string);
 			}
 		}
 	}

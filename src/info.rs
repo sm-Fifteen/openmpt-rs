@@ -1,6 +1,4 @@
 use openmpt_sys;
-use std::ffi::CString;
-use std::ffi::CStr;
 use std::str;
 
 #[derive(Debug)]
@@ -42,15 +40,10 @@ impl InfoField {
 }
 
 pub fn get_string (field : &InfoField) -> Option<String> {
-	let cstr = CString::new(field.to_str()).unwrap();
-	let cstr_ptr = cstr.as_ptr();
-	let info_string = unsafe {
-		// openmpt expects and returns utf-8 strings
-		let return_ptr = openmpt_sys::openmpt_get_string(cstr_ptr);
-		let return_str = CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
-		openmpt_sys::openmpt_free_string(return_ptr);
-		return_str
-	};
+	let field = field.to_str();
+	let info_string = get_string_with_string!(field, {
+		openmpt_sys::openmpt_get_string(field)
+	});
 
 	if info_string.len() == 0 {
 		None
@@ -60,21 +53,15 @@ pub fn get_string (field : &InfoField) -> Option<String> {
 }
 
 pub fn get_supported_extensions() -> String {
-	unsafe {
-		// openmpt expects and returns utf-8 strings
-		let return_ptr = openmpt_sys::openmpt_get_supported_extensions();
-		let return_str = CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
-		openmpt_sys::openmpt_free_string(return_ptr);
-		return_str
+	get_string!{
+		openmpt_sys::openmpt_get_supported_extensions()
 	}
 }
 
 pub fn is_extension_supported(extension : &str) -> bool {
-	let cstr = CString::new(extension).unwrap();
-	let cstr_ptr = cstr.as_ptr();
-	let result = unsafe {
-		openmpt_sys::openmpt_is_extension_supported(cstr_ptr)
-	};
+	let result = with_string!(extension, {
+		openmpt_sys::openmpt_is_extension_supported(extension)
+	});
 
 	// Returns : 1 if the extension is supported by libopenmpt, 0 otherwise.
 	if result == 1 { true } else { false }
