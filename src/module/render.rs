@@ -3,6 +3,11 @@ use openmpt_sys;
 use std::os::raw::*;
 use std::cmp::min;
 
+const RENDER_MASTERGAIN_MILLIBEL:c_int = 1;
+const RENDER_STEREOSEPARATION_PERCENT:c_int = 2;
+const RENDER_INTERPOLATIONFILTER_LENGTH:c_int = 3;
+const RENDER_VOLUMERAMPING_STRENGTH:c_int = 4;
+
 impl Module {
 	pub fn read_mono(&mut self, sample_rate : i32, mono: &mut Vec<i16>) -> usize {
 		let count = mono.capacity();
@@ -82,5 +87,94 @@ impl Module {
 		unsafe {
 			openmpt_sys::openmpt_module_read_interleaved_float_quad(self.inner, sample_rate, count, interleaved_quad.as_mut_ptr())
 		}
+	}
+
+	pub fn set_render_mastergain_millibel(&mut self, relative_gain: i32) -> bool {
+		self.set_render_param(RENDER_MASTERGAIN_MILLIBEL, relative_gain)
+	}
+
+	pub fn set_render_stereo_separation(&mut self, percentage: i32) -> bool {
+		self.set_render_param(RENDER_STEREOSEPARATION_PERCENT, percentage)
+	}
+
+	pub fn set_render_interpolation_filter_length(&mut self, filter_length: i32) -> bool {
+		self.set_render_param(RENDER_INTERPOLATIONFILTER_LENGTH, filter_length)
+	}
+
+	pub fn set_render_volume_ramping(&mut self, strength: i32) -> bool {
+		self.set_render_param(RENDER_VOLUMERAMPING_STRENGTH, strength)
+	}
+
+	fn set_render_param(&mut self, param: c_int, value: i32) -> bool {
+		let return_value = unsafe {
+			openmpt_sys::openmpt_module_set_render_param(self.inner, param, value)
+		};
+
+		return_value == 1
+	}
+
+	pub fn get_render_mastergain_millibel(&self) -> Option<i32> {
+		self.get_render_param(RENDER_MASTERGAIN_MILLIBEL)
+	}
+
+	pub fn get_render_stereo_separation(&self) -> Option<i32> {
+		self.get_render_param(RENDER_STEREOSEPARATION_PERCENT)
+	}
+
+	pub fn get_render_interpolation_filter_length(&self) -> Option<i32> {
+		self.get_render_param(RENDER_INTERPOLATIONFILTER_LENGTH)
+	}
+
+	pub fn get_render_volume_ramping(&self) -> Option<i32> {
+		self.get_render_param(RENDER_VOLUMERAMPING_STRENGTH)
+	}
+
+	fn get_render_param(&self, param: c_int) -> Option<i32> {
+		let mut out:i32 = 0;
+		let out_ptr = &mut out as *mut i32;
+		let return_value = unsafe {
+			openmpt_sys::openmpt_module_get_render_param(self.inner, param, out_ptr)
+		};
+		//let out = unsafe { *out_ptr };
+
+		if return_value == 1 {
+			Some(out)
+		} else {
+			None
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use super::super::test_helper;
+
+	#[test]
+	fn dummy_file_opens_with_default_render_parameters() {
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+
+		assert_eq!(module.get_render_mastergain_millibel().unwrap(), 0);
+		assert_eq!(module.get_render_stereo_separation().unwrap(), 100);
+		// Not always 0, just the selected default (8 in this case)
+		assert_eq!(module.get_render_interpolation_filter_length().unwrap(), 8);
+		assert_eq!(module.get_render_volume_ramping().unwrap(), -1);
+	}
+
+	#[test]
+	fn render_parameters_changes_are_correctly_applied() {
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+
+		module.set_render_mastergain_millibel(10);
+		assert_eq!(module.get_render_mastergain_millibel().unwrap(), 10);
+
+		module.set_render_stereo_separation(150);
+		assert_eq!(module.get_render_stereo_separation().unwrap(), 150);
+		
+		module.set_render_interpolation_filter_length(1);
+		assert_eq!(module.get_render_interpolation_filter_length().unwrap(), 1);
+
+		module.set_render_volume_ramping(0);
+		assert_eq!(module.get_render_volume_ramping().unwrap(), 0);
 	}
 }
