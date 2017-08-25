@@ -2,7 +2,11 @@ use openmpt_sys;
 use std::ffi::CString;
 use std::ffi::NulError;
 use std::os::raw::*;
-use std::ptr;
+
+pub(super) struct InitialCtl {
+	pub ctl: CString,
+	pub value: CString,
+}
 
 pub enum DitherMode {
 	Auto,
@@ -23,7 +27,7 @@ pub enum Ctl {
 }
 
 impl Ctl {
-	fn to_str(&self) -> &str {
+	fn key_to_str(&self) -> &str {
 		use self::Ctl::*;
 		match *self {
 			SkipLoadingSamples(_) =>  "load.skip_samples",
@@ -37,37 +41,29 @@ impl Ctl {
 		}
 	}
 
-	fn to_cstr(&self) -> CString {
-		CString::new(self.to_str())
-			.expect("Failed to unwrap a CString cast that shouldn't fail")
-	}
-	
-	fn param_to_cstr(&self) -> CString {
+	fn param_to_str(&self) -> String {
 		use self::Ctl::*;
 		match *self {
-			SkipLoadingSamples(ref param) =>  CString::new(if *param {"1"} else {"0"}),
-			SkipLoadingPatterns(ref param) => CString::new(if *param {"1"} else {"0"}),
-			SkipLoadingPlugins(ref param) => CString::new(if *param {"1"} else {"0"}),
-			SkipSubsongPreinit(ref param) => CString::new(if *param {"1"} else {"0"}),
-			SyncSamplesWhenSeeking(ref param) => CString::new(if *param {"1"} else {"0"}),
-			PlaybackTempoFactor(ref param) => CString::new(param.to_string()),
-			PlaybackPitchFactor(ref param) => CString::new(param.to_string()),
+			SkipLoadingSamples(ref param) =>  if *param {"1"} else {"0"}.to_owned(),
+			SkipLoadingPatterns(ref param) => if *param {"1"} else {"0"}.to_owned(),
+			SkipLoadingPlugins(ref param) => if *param {"1"} else {"0"}.to_owned(),
+			SkipSubsongPreinit(ref param) => if *param {"1"} else {"0"}.to_owned(),
+			SyncSamplesWhenSeeking(ref param) => if *param {"1"} else {"0"}.to_owned(),
+			PlaybackTempoFactor(ref param) => param.to_string(),
+			PlaybackPitchFactor(ref param) => param.to_string(),
 			DitherMode16Bit(ref param) => match *param {
-				DitherMode::None => CString::new("0"),
-				DitherMode::Auto => CString::new("1"),
-				DitherMode::ModPlug => CString::new("2"),
-				DitherMode::Simple => CString::new("3"),
-			},
-		}.expect("Failed to unwrap a CString cast that shouldn't fail")
+				DitherMode::None => "0",
+				DitherMode::Auto => "1",
+				DitherMode::ModPlug => "2",
+				DitherMode::Simple => "3",
+			}.to_owned(),
+		}
 	}
-}
 
-pub(super) fn to_initial_ctl_ptr(list : &[Ctl]) -> *const openmpt_sys::openmpt_module_initial_ctl {
-	// TODO : Function stub, always returns a null pointer as if there were no ctls
-	//if list.len() == 0 {
-	//&openmpt_sys::openmpt_module_initial_ctl::default()
-	//} else {
-	//
-	//}
-	ptr::null()
+	pub(super) fn to_initial_ctl(&self) -> InitialCtl {
+		InitialCtl {
+			ctl: CString::new(self.key_to_str()).unwrap(),
+			value: CString::new(self.param_to_str()).unwrap(),
+		}
+	}
 }

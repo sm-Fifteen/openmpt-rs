@@ -1,6 +1,7 @@
 use openmpt_sys;
 use std::ops::Deref;
 use std::os::raw::*;
+use std::ptr;
 
 mod logging;
 mod ctls;
@@ -16,9 +17,28 @@ pub struct Module {
 
 impl Module {
 	pub fn create_from_memory(stream : &mut Vec<u8>, logger : logging::Logger<()>, init_ctls : &[ctls::Ctl]) -> Result<Module, ()> {
+		use self::ctls::InitialCtl;
+
 		let module_ptr = unsafe {
+			if init_ctls.len() == 0 {
 				openmpt_sys::openmpt_module_create_from_memory(stream.as_ptr() as *const _, stream.len(), logger.log_func(),
-						logger.logging_context(), ctls::to_initial_ctl_ptr(init_ctls))
+						logger.logging_context(), ptr::null())
+			} else {
+				let mut ctl_strings:Vec<InitialCtl> = Vec::with_capacity(init_ctls.len());
+				let mut ctl_structs:Vec<openmpt_sys::openmpt_module_initial_ctl> = Vec::with_capacity(init_ctls.len());
+
+				for ctl in init_ctls {
+					let ctl = ctl.to_initial_ctl();
+					ctl_structs.push(openmpt_sys::openmpt_module_initial_ctl {
+						ctl: ctl.ctl.as_ptr(),
+						value: ctl.value.as_ptr(),
+					});
+					ctl_strings.push(ctl);
+				}
+
+				openmpt_sys::openmpt_module_create_from_memory(stream.as_ptr() as *const _, stream.len(), logger.log_func(),
+						logger.logging_context(), ctl_structs.as_ptr())
+			}
 		};
 
 		if module_ptr.is_null() {
