@@ -7,6 +7,7 @@ mod ctls;
 mod metadata;
 mod mod_command;
 mod iteration;
+mod render;
 #[cfg(test)] mod test_helper;
 
 pub struct Module {
