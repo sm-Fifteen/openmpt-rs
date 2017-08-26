@@ -17,35 +17,23 @@ pub struct Module {
 
 impl Module {
 	pub fn create_from_memory(stream : &mut Vec<u8>, logger : logging::Logger<()>, init_ctls : &[ctls::Ctl]) -> Result<Module, ()> {
-		use self::ctls::InitialCtl;
-
 		let module_ptr = unsafe {
-			if init_ctls.len() == 0 {
-				openmpt_sys::openmpt_module_create_from_memory(stream.as_ptr() as *const _, stream.len(), logger.log_func(),
-						logger.logging_context(), ptr::null())
-			} else {
-				let mut ctl_strings:Vec<InitialCtl> = Vec::with_capacity(init_ctls.len());
-				let mut ctl_structs:Vec<openmpt_sys::openmpt_module_initial_ctl> = Vec::with_capacity(init_ctls.len());
-
-				for ctl in init_ctls {
-					let ctl = ctl.to_initial_ctl();
-					ctl_structs.push(openmpt_sys::openmpt_module_initial_ctl {
-						ctl: ctl.ctl.as_ptr(),
-						value: ctl.value.as_ptr(),
-					});
-					ctl_strings.push(ctl);
-				}
-
-				openmpt_sys::openmpt_module_create_from_memory(stream.as_ptr() as *const _, stream.len(), logger.log_func(),
-						logger.logging_context(), ctl_structs.as_ptr())
-			}
+			openmpt_sys::openmpt_module_create_from_memory(stream.as_ptr() as *const _, stream.len(), logger.log_func(),
+					logger.logging_context(), ptr::null())
 		};
 
 		if module_ptr.is_null() {
-			Err(())
-		} else {
-			Ok(Module { inner : module_ptr })
+			return Err(())
 		}
+		
+		let mut module = Module { inner : module_ptr };
+
+		// Set each init ctl by hand, lists of stucts of FFI string pointers are too much of a nightmare to deal with in Rust
+		for init_ctl in init_ctls {
+			module.ctl_set(init_ctl);
+		}
+
+		Ok(module)
 	}
 }
 

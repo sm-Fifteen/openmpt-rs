@@ -1,12 +1,6 @@
 use openmpt_sys;
-use std::ffi::CString;
-use std::ffi::NulError;
+use super::Module;
 use std::os::raw::*;
-
-pub(super) struct InitialCtl {
-	pub ctl: CString,
-	pub value: CString,
-}
 
 pub enum DitherMode {
 	Auto,
@@ -26,18 +20,28 @@ pub enum Ctl {
 	DitherMode16Bit(DitherMode),
 }
 
+pub enum CtlKey {
+	SkipLoadingSamples,
+	SkipLoadingPatterns,
+	SkipLoadingPlugins,
+	SkipSubsongPreinit,
+	SyncSamplesWhenSeeking,
+	PlaybackTempoFactor,
+	PlaybackPitchFactor,
+	DitherMode16Bit,
+}
+
 impl Ctl {
-	fn key_to_str(&self) -> &str {
-		use self::Ctl::*;
+	fn key(&self) -> CtlKey {
 		match *self {
-			SkipLoadingSamples(_) =>  "load.skip_samples",
-			SkipLoadingPatterns(_) => "load.skip_patterns",
-			SkipLoadingPlugins(_) => "load.skip_plugins",
-			SkipSubsongPreinit(_) => "load.skip_subsongs_init",
-			SyncSamplesWhenSeeking(_) => "seek.sync_samples",
-			PlaybackTempoFactor(_) => "play.tempo_factor",
-			PlaybackPitchFactor(_) => "play.pitch_factor",
-			DitherMode16Bit(_) => "dither",
+			Ctl::SkipLoadingSamples(_) => CtlKey::SkipLoadingSamples,
+			Ctl::SkipLoadingPatterns(_) => CtlKey::SkipLoadingPatterns,
+			Ctl::SkipLoadingPlugins(_) => CtlKey::SkipLoadingPlugins,
+			Ctl::SkipSubsongPreinit(_) => CtlKey::SkipSubsongPreinit,
+			Ctl::SyncSamplesWhenSeeking(_) => CtlKey::SyncSamplesWhenSeeking,
+			Ctl::PlaybackTempoFactor(_) => CtlKey::PlaybackTempoFactor,
+			Ctl::PlaybackPitchFactor(_) => CtlKey::PlaybackPitchFactor,
+			Ctl::DitherMode16Bit(_) => CtlKey::DitherMode16Bit,
 		}
 	}
 
@@ -59,11 +63,70 @@ impl Ctl {
 			}.to_owned(),
 		}
 	}
+}
 
-	pub(super) fn to_initial_ctl(&self) -> InitialCtl {
-		InitialCtl {
-			ctl: CString::new(self.key_to_str()).unwrap(),
-			value: CString::new(self.param_to_str()).unwrap(),
+impl CtlKey {
+	fn to_str(&self) -> String {
+		use self::CtlKey::*;
+		match *self {
+			SkipLoadingSamples =>  "load.skip_samples",
+			SkipLoadingPatterns => "load.skip_patterns",
+			SkipLoadingPlugins => "load.skip_plugins",
+			SkipSubsongPreinit => "load.skip_subsongs_init",
+			SyncSamplesWhenSeeking => "seek.sync_samples",
+			PlaybackTempoFactor => "play.tempo_factor",
+			PlaybackPitchFactor => "play.pitch_factor",
+			DitherMode16Bit => "dither",
+		}.to_owned()
+	}
+}
+
+impl Module {
+	// FIXME : Still figuring out a way to return Ctls
+	pub fn ctl_get_string(&self, ctl_key: CtlKey) -> Option<String> {
+		let key = ctl_key.to_str();
+		let return_value = get_string_with_string!(key, {
+			openmpt_sys::openmpt_module_ctl_get(self.inner, key)
+		});
+
+		if return_value.len() == 0 {
+			None
+		} else {
+			Some(return_value)
 		}
+	}
+
+	pub fn ctl_set(&mut self, ctl: &Ctl) -> bool {
+		let key = ctl.key().to_str();
+		let val = ctl.param_to_str();
+
+		let return_value = with_2strings!(key, val, {
+			openmpt_sys::openmpt_module_ctl_set(self.inner, key, val)
+		});
+
+		if return_value == 1 { true } else { false }
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use super::super::Module;
+	use super::super::test_helper;
+
+	#[test]
+	fn initial_ctls_are_respected() {
+		use super::super::logging;
+		use std::io::prelude::*;
+		use std::fs::File;
+
+		let mut f = File::open("empty_module.xm").expect("file not found");
+		let mut buf = Vec::new();
+		f.read_to_end(&mut buf);
+
+		let initial_ctls = vec!{ Ctl::PlaybackTempoFactor(2.0), Ctl::PlaybackPitchFactor(2.0) };
+		let module = Module::create_from_memory(&mut buf, logging::Logger::None, &initial_ctls).unwrap();
+		assert_eq!(module.ctl_get_string(CtlKey::PlaybackTempoFactor).unwrap(), "2");
+		assert_eq!(module.ctl_get_string(CtlKey::PlaybackPitchFactor).unwrap(), "2");
 	}
 }

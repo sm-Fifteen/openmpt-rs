@@ -22,6 +22,18 @@ macro_rules! with_string {
 	}
 }
 
+macro_rules! with_2strings {
+	( $string1:ident, $string2:ident, $operation:expr ) => {
+		unsafe {
+			let cstr1 = ::std::ffi::CString::new($string1).unwrap();
+			let cstr2 = ::std::ffi::CString::new($string2).unwrap();
+			let $string1 = cstr1.as_ptr();
+			let $string2 = cstr2.as_ptr();
+			$operation
+		}
+	}
+}
+
 macro_rules! get_string_with_string {
 	( $string:ident, $operation:expr ) => {
 		unsafe {
