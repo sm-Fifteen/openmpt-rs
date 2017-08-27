@@ -79,27 +79,35 @@ impl Module {
 	}
 
 	pub fn get_instrument_name (&self, instrument_num: i32) -> String {
-		get_string!{
+		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_instrument_name(self.inner, instrument_num)
-		}
+		};
+		
+		opt_string.expect("Got null pointer instead of string")
 	}
 	
 	pub fn get_sample_name (&self, sample_num: i32) -> String {
-		get_string!{
+		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_sample_name(self.inner, sample_num)
-		}
+		};
+
+		opt_string.expect("Got null pointer instead of string")
 	}
 
 	pub fn get_channel_name (&self, channel_num: i32) -> String {
-		get_string!{
+		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_channel_name(self.inner, channel_num)
-		}
+		};
+
+		opt_string.expect("Got null pointer instead of string")
 	}
 
 	pub fn get_subsong_name (&self, subsong_num: i32) -> String {
-		get_string!{
+		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_subsong_name(self.inner, subsong_num)
-		}
+		};
+
+		opt_string.expect("Got null pointer instead of string")
 	}
 }
 
@@ -118,9 +126,11 @@ impl<'m> Pattern<'m> {
 
 	pub fn get_name (&self) -> String {
 		// Order names apparently just gives you the name of the pattern
-		get_string!{
+		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_pattern_name(self.module.inner, self.num)
-		}
+		};
+
+		opt_string.expect("Got null pointer instead of string")
 	}
 
 	pub fn get_num_rows(&self) -> i32 {
@@ -170,7 +180,7 @@ impl <'m> Cell<'m> {
 	}
 
 	pub fn get_formatted(&self, width: usize, pad: bool) -> String {
-		get_string!({
+		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_format_pattern_row_channel(
 				self.row.pattern.module.inner,
 				self.row.pattern.num,
@@ -179,11 +189,13 @@ impl <'m> Cell<'m> {
 				width,
 				pad as c_int
 			)
-		})
+		});
+
+		opt_string.expect("Got null pointer instead of string")
 	}
 
 	pub fn get_formatted_by_command(&self, command: ModuleCommandIndex) -> String {
-		get_string!({
+		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_format_pattern_row_channel_command(
 				self.row.pattern.module.inner,
 				self.row.pattern.num,
@@ -191,11 +203,13 @@ impl <'m> Cell<'m> {
 				self.channel_num,
 				command.value()
 			)
-		})
+		});
+
+		opt_string.expect("Got null pointer instead of string")
 	}
 
 	pub fn get_highlight(&self, width: usize, pad: bool) -> String {
-		get_string!({
+		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_highlight_pattern_row_channel(
 				self.row.pattern.module.inner,
 				self.row.pattern.num,
@@ -204,11 +218,13 @@ impl <'m> Cell<'m> {
 				width,
 				pad as c_int
 			)
-		})
+		});
+
+		opt_string.expect("Got null pointer instead of string")
 	}
 
 	pub fn get_highlight_by_command(&self, command: ModuleCommandIndex) -> String {
-		get_string!({
+		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_highlight_pattern_row_channel_command(
 				self.row.pattern.module.inner,
 				self.row.pattern.num,
@@ -216,7 +232,9 @@ impl <'m> Cell<'m> {
 				self.channel_num,
 				command.value()
 			)
-		})
+		});
+
+		opt_string.expect("Got null pointer instead of string")
 	}
 }
 

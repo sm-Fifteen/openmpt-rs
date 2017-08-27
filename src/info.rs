@@ -41,21 +41,17 @@ impl InfoField {
 
 pub fn get_string (field : &InfoField) -> Option<String> {
 	let field = field.to_str();
-	let info_string = get_string_with_string!(field, {
+	get_string_with_string!(field, {
 		openmpt_sys::openmpt_get_string(field)
-	});
-
-	if info_string.len() == 0 {
-		None
-	} else {
-		Some(info_string)
-	}
+	})
 }
 
 pub fn get_supported_extensions() -> String {
-	get_string!{
+	let opt_string = get_string!{
 		openmpt_sys::openmpt_get_supported_extensions()
-	}
+	};
+
+	opt_string.expect("Got null pointer instead of string")
 }
 
 pub fn is_extension_supported(extension : &str) -> bool {

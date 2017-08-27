@@ -5,9 +5,14 @@ macro_rules! get_string {
 		unsafe {
 			// openmpt expects and returns utf-8 strings
 			let return_ptr = $operation;
-			let return_str = ::std::ffi::CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
-			openmpt_sys::openmpt_free_string(return_ptr);
-			return_str
+
+			if return_ptr.is_null() {
+				None::<String>
+			} else {
+				let return_str = ::std::ffi::CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
+				openmpt_sys::openmpt_free_string(return_ptr);
+				Some(return_str)
+			}
 		}
 	};
 }
@@ -40,9 +45,14 @@ macro_rules! get_string_with_string {
 			let cstr = ::std::ffi::CString::new($string).unwrap();
 			let $string = cstr.as_ptr();
 			let return_ptr = $operation;
-			let return_str = ::std::ffi::CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
-			openmpt_sys::openmpt_free_string(return_ptr);
-			return_str
+
+			if return_ptr.is_null() {
+				None::<String>
+			} else {
+				let return_str = ::std::ffi::CStr::from_ptr(return_ptr).to_string_lossy().into_owned();
+				openmpt_sys::openmpt_free_string(return_ptr);
+				Some(return_str)
+			}
 		}
 	}
 }

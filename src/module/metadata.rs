@@ -38,21 +38,17 @@ impl MetadataKey {
 impl Module {
 	pub fn get_metadata(&self, key : MetadataKey) -> Option<String> {
 		let key = key.to_str();
-		let value_string = get_string_with_string! (key, {
+		get_string_with_string! (key, {
 			openmpt_sys::openmpt_module_get_metadata(self.inner, key)
-		});
-
-		if value_string.len() == 0 {
-			None
-		} else {
-			Some(value_string)
-		}
+		})
 	}
 
 	fn get_metadata_keys(&self) -> String {
-		get_string! {
+		let opt_string = get_string! {
 			openmpt_sys::openmpt_module_get_metadata_keys(self.inner)
-		}
+		};
+
+		opt_string.expect("Got null pointer instead of string")
 	}
 }
 

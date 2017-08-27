@@ -193,25 +193,19 @@ impl Module {
 	}
 
 	pub fn ctl_get(&self, key: &str) -> Option<String> {
-		let return_value = get_string_with_string!(key, {
+		get_string_with_string!(key, {
 			openmpt_sys::openmpt_module_ctl_get(self.inner, key)
-		});
-
-		if return_value.len() == 0 {
-			None
-		} else {
-			Some(return_value)
-		}
+		})
 	}
 
 	pub(super) fn enum_ctl_set(&mut self, ctl: &Ctl) -> bool {
 		let key = ctl.key_to_str();
 		let val = ctl.param_to_str();
 
-		self.ctl_set(key, val)
+		self.ctl_set(&key, &val)
 	}
 
-	pub fn ctl_set(&mut self, key: String, val: String) -> bool {
+	pub fn ctl_set(&mut self, key: &str, val: &str) -> bool {
 		let return_value = with_2strings!(key, val, {
 			openmpt_sys::openmpt_module_ctl_set(self.inner, key, val)
 		});
@@ -228,17 +222,7 @@ mod tests {
 
 	#[test]
 	fn default_ctls_are_respected() {
-		use super::super::logging;
-		use std::io::prelude::*;
-		use std::fs::File;
-
-		let mut f = File::open("empty_module.xm").expect("file not found");
-		let mut buf = Vec::new();
-		f.read_to_end(&mut buf);
-
-		let initial_ctls = vec!{};
-
-		let module = Module::create_from_memory(&mut buf, logging::Logger::None, &initial_ctls).unwrap();
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 		
 		assert_eq!(module.ctl_get_load_skip_samples().unwrap(), false);
 		assert_eq!(module.ctl_get_load_skip_patterns().unwrap(), false);
@@ -280,5 +264,27 @@ mod tests {
 		assert_eq!(module.ctl_get_play_tempo_factor().unwrap(), 2.0);
 		assert_eq!(module.ctl_get_play_pitch_factor().unwrap(), 2.0);
 		assert_eq!(module.ctl_get_dither().unwrap(), DitherMode::Simple);
+	}
+
+	#[test]
+	fn clean_result_for_getting_unknown_ctl() {
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+
+		assert!(module.ctl_get("invalid_ctl").is_none());
+	}
+
+	#[test]
+	fn clean_result_for_setting_invalid_ctl() {
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+
+		try_set_ctl(&mut module, dither, "26");
+	}
+
+	fn try_set_ctl (module: &mut Module, key: &str, new_val: &str) {
+		// Apparently, those only return false if the string pointers are invalid.
+		// assert!(!module.ctl_set(dither, "26"));
+
+		module.ctl_set(key, "26");
+		println!("Tried setting {:?} at {:?}, now at {:?}", key, new_val, module.ctl_get(dither).unwrap());
 	}
 }
