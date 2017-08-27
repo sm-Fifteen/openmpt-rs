@@ -65,7 +65,7 @@ mod tests {
 	}
 
 	#[test]
-	fn all_enum_values_are_supported() {
+	fn all_known_metadata_keys_are_supported() {
 		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 		let keys = module.get_metadata_keys();
 		

@@ -212,6 +212,14 @@ impl Module {
 
 		if return_value == 1 { true } else { false }
 	}
+
+	fn get_ctls(&self) -> String {
+		let opt_string = get_string! {
+			openmpt_sys::openmpt_module_get_ctls(self.inner)
+		};
+
+		opt_string.expect("Got null pointer instead of string")
+	}
 }
 
 #[cfg(test)]
@@ -220,6 +228,21 @@ mod tests {
 	use super::super::Module;
 	use super::super::Logger;
 	use super::super::test_helper;
+
+	#[test]
+	fn all_known_ctls_are_supported() {
+		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		let keys = module.get_ctls();
+		
+		assert!(keys.contains(load_skip_samples));
+		assert!(keys.contains(load_skip_patterns));
+		assert!(keys.contains(load_skip_plugins));
+		assert!(keys.contains(load_skip_subsongs_init));
+		assert!(keys.contains(seek_sync_samples));
+		assert!(keys.contains(play_tempo_factor));
+		assert!(keys.contains(play_pitch_factor));
+		assert!(keys.contains(dither));
+	}
 
 	#[test]
 	fn default_ctls_are_respected() {
