@@ -218,6 +218,7 @@ impl Module {
 mod tests {
 	use super::*;
 	use super::super::Module;
+	use super::super::Logger;
 	use super::super::test_helper;
 
 	#[test]
@@ -236,7 +237,6 @@ mod tests {
 
 	#[test]
 	fn initial_ctls_are_respected() {
-		use super::super::logging;
 		use std::io::prelude::*;
 		use std::fs::File;
 
@@ -254,7 +254,7 @@ mod tests {
 			Ctl::PlaybackPitchFactor(2.0),
 			Ctl::DitherMode16Bit(DitherMode::Simple),
 		};
-		let module = Module::create_from_memory(&mut buf, logging::Logger::None, &initial_ctls).unwrap();
+		let module = Module::create_from_memory(&mut buf, Logger::None, &initial_ctls).unwrap();
 		
 		assert_eq!(module.ctl_get_load_skip_samples().unwrap(), true);
 		assert_eq!(module.ctl_get_load_skip_patterns().unwrap(), true);
