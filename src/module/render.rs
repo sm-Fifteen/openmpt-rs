@@ -89,6 +89,14 @@ impl Module {
 		}
 	}
 
+	pub fn set_repeat_count(&mut self, repeat_count: i32) -> bool {
+		let return_value = unsafe {
+			openmpt_sys::openmpt_module_set_repeat_count(self.inner, repeat_count)
+		};
+
+		return_value == 1
+	}
+
 	pub fn set_render_mastergain_millibel(&mut self, relative_gain: i32) -> bool {
 		self.set_render_param(RENDER_MASTERGAIN_MILLIBEL, relative_gain)
 	}
@@ -111,6 +119,12 @@ impl Module {
 		};
 
 		return_value == 1
+	}
+
+	pub fn get_repeat_count(&self) -> i32 {
+		unsafe {
+			openmpt_sys::openmpt_module_get_repeat_count(self.inner)
+		}
 	}
 
 	pub fn get_render_mastergain_millibel(&self) -> Option<i32> {
