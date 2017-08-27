@@ -30,7 +30,7 @@ impl Module {
 
 		// Set each init ctl by hand, lists of stucts of FFI string pointers are too much of a nightmare to deal with in Rust
 		for init_ctl in init_ctls {
-			module.ctl_set(init_ctl);
+			module.enum_ctl_set(init_ctl);
 		}
 
 		Ok(module)
