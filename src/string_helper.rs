@@ -1,5 +1,3 @@
-use openmpt_sys;
-
 macro_rules! get_string {
 	( $operation:expr ) => {
 		unsafe {

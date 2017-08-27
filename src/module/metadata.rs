@@ -43,7 +43,7 @@ impl Module {
 		})
 	}
 
-	fn get_metadata_keys(&self) -> String {
+	pub fn get_metadata_keys(&self) -> String {
 		let opt_string = get_string! {
 			openmpt_sys::openmpt_module_get_metadata_keys(self.inner)
 		};

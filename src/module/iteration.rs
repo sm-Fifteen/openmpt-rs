@@ -1,9 +1,6 @@
 use openmpt_sys;
 use super::Module;
-use std::iter::Iterator;
-use std::ops::Range;
 use super::mod_command::ModCommand;
-use std::fmt;
 use std::os::raw::c_int;
 
 pub struct Pattern<'m> {
@@ -263,7 +260,6 @@ impl ModuleCommandIndex {
 
 #[cfg(test)]
 mod tests {
-	use super::*;
 	use super::super::test_helper;
 
 	#[test]

@@ -2,11 +2,11 @@ use openmpt_sys;
 use std::os::raw::*;
 use std::ptr;
 
-mod ctls;
-mod metadata;
-mod mod_command;
-mod iteration;
-mod render;
+pub mod ctls;
+pub mod metadata;
+pub mod mod_command;
+pub mod iteration;
+pub mod render;
 #[cfg(test)] mod test_helper;
 
 pub struct Module {

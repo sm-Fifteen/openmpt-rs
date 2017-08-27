@@ -3,14 +3,14 @@ use super::Module;
 use std::str::FromStr;
 use std::os::raw::*;
 
-const load_skip_samples:&str = "load.skip_samples";
-const load_skip_patterns:&str = "load.skip_patterns";
-const load_skip_plugins:&str = "load.skip_plugins";
-const load_skip_subsongs_init:&str = "load.skip_subsongs_init";
-const seek_sync_samples:&str = "seek.sync_samples";
-const play_tempo_factor:&str = "play.tempo_factor";
-const play_pitch_factor:&str = "play.pitch_factor";
-const dither:&str = "dither";
+const LOAD_SKIP_SAMPLES:&str = "load.skip_samples";
+const LOAD_SKIP_PATTERNS:&str = "load.skip_patterns";
+const LOAD_SKIP_PLUGINS:&str = "load.skip_plugins";
+const LOAD_SKIP_SUBSONGS_INIT:&str = "load.skip_subsongs_init";
+const SEEK_SYNC_SAMPLES:&str = "seek.sync_samples";
+const PLAY_TEMPO_FACTOR:&str = "play.tempo_factor";
+const PLAY_PITCH_FACTOR:&str = "play.pitch_factor";
+const DITHER:&str = "dither";
 
 #[derive(PartialEq, Debug)]
 pub enum DitherMode {
@@ -48,14 +48,14 @@ pub enum Ctl {
 impl Ctl {
 	fn key_to_str(&self) -> String {
 		match *self {
-			Ctl::SkipLoadingSamples(_) =>  load_skip_samples,
-			Ctl::SkipLoadingPatterns(_) => load_skip_patterns,
-			Ctl::SkipLoadingPlugins(_) => load_skip_plugins,
-			Ctl::SkipSubsongPreinit(_) => load_skip_subsongs_init,
-			Ctl::SyncSamplesWhenSeeking(_) => seek_sync_samples,
-			Ctl::PlaybackTempoFactor(_) => play_tempo_factor,
-			Ctl::PlaybackPitchFactor(_) => play_pitch_factor,
-			Ctl::DitherMode16Bit(_) => dither,
+			Ctl::SkipLoadingSamples(_) =>  LOAD_SKIP_SAMPLES,
+			Ctl::SkipLoadingPatterns(_) => LOAD_SKIP_PATTERNS,
+			Ctl::SkipLoadingPlugins(_) => LOAD_SKIP_PLUGINS,
+			Ctl::SkipSubsongPreinit(_) => LOAD_SKIP_SUBSONGS_INIT,
+			Ctl::SyncSamplesWhenSeeking(_) => SEEK_SYNC_SAMPLES,
+			Ctl::PlaybackTempoFactor(_) => PLAY_TEMPO_FACTOR,
+			Ctl::PlaybackPitchFactor(_) => PLAY_PITCH_FACTOR,
+			Ctl::DitherMode16Bit(_) => DITHER,
 		}.to_owned()
 	}
 
@@ -81,7 +81,7 @@ impl Ctl {
 
 impl Module {
 	pub fn ctl_get_load_skip_samples(&self) -> Option<bool> {
-		let return_val = self.ctl_get(load_skip_samples);
+		let return_val = self.ctl_get(LOAD_SKIP_SAMPLES);
 
 		if let Some(ref str_val) = return_val {
 			i32::from_str(str_val).map(|num| num != 0).ok()
@@ -95,7 +95,7 @@ impl Module {
 	}
 
 	pub fn ctl_get_load_skip_patterns(&self) -> Option<bool> {
-		let return_val = self.ctl_get(load_skip_patterns);
+		let return_val = self.ctl_get(LOAD_SKIP_PATTERNS);
 
 		if let Some(ref str_val) = return_val {
 			i32::from_str(str_val).map(|num| num != 0).ok()
@@ -109,7 +109,7 @@ impl Module {
 	}
 
 	pub fn ctl_get_load_skip_plugins(&self) -> Option<bool> {
-		let return_val = self.ctl_get(load_skip_plugins);
+		let return_val = self.ctl_get(LOAD_SKIP_PLUGINS);
 
 		if let Some(ref str_val) = return_val {
 			i32::from_str(str_val).map(|num| num != 0).ok()
@@ -123,7 +123,7 @@ impl Module {
 	}
 
 	pub fn ctl_get_load_skip_subsongs_init(&self) -> Option<bool> {
-		let return_val = self.ctl_get(load_skip_subsongs_init);
+		let return_val = self.ctl_get(LOAD_SKIP_SUBSONGS_INIT);
 
 		if let Some(ref str_val) = return_val {
 			i32::from_str(str_val).map(|num| num != 0).ok()
@@ -137,7 +137,7 @@ impl Module {
 	}
 
 	pub fn ctl_get_seek_sync_samples(&self) -> Option<bool> {
-		let return_val = self.ctl_get(seek_sync_samples);
+		let return_val = self.ctl_get(SEEK_SYNC_SAMPLES);
 
 		if let Some(ref str_val) = return_val {
 			i32::from_str(str_val).map(|num| num != 0).ok()
@@ -151,7 +151,7 @@ impl Module {
 	}
 
 	pub fn ctl_get_play_tempo_factor(&self) -> Option<c_double> {
-		let return_val = self.ctl_get(play_tempo_factor);
+		let return_val = self.ctl_get(PLAY_TEMPO_FACTOR);
 
 		if let Some(ref str_val) = return_val {
 			c_double::from_str(str_val).ok()
@@ -165,7 +165,7 @@ impl Module {
 	}
 
 	pub fn ctl_get_play_pitch_factor(&self) -> Option<c_double> {
-		let return_val = self.ctl_get(play_pitch_factor);
+		let return_val = self.ctl_get(PLAY_PITCH_FACTOR);
 
 		if let Some(ref str_val) = return_val {
 			c_double::from_str(str_val).ok()
@@ -179,7 +179,7 @@ impl Module {
 	}
 
 	pub fn ctl_get_dither(&self) -> Option<DitherMode> {
-		let return_val = self.ctl_get(dither);
+		let return_val = self.ctl_get(DITHER);
 
 		if let Some(ref str_val) = return_val {
 			DitherMode::from_str(str_val).ok()
@@ -213,7 +213,7 @@ impl Module {
 		if return_value == 1 { true } else { false }
 	}
 
-	fn get_ctls(&self) -> String {
+	pub fn get_ctls(&self) -> String {
 		let opt_string = get_string! {
 			openmpt_sys::openmpt_module_get_ctls(self.inner)
 		};
@@ -234,19 +234,19 @@ mod tests {
 		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 		let keys = module.get_ctls();
 		
-		assert!(keys.contains(load_skip_samples));
-		assert!(keys.contains(load_skip_patterns));
-		assert!(keys.contains(load_skip_plugins));
-		assert!(keys.contains(load_skip_subsongs_init));
-		assert!(keys.contains(seek_sync_samples));
-		assert!(keys.contains(play_tempo_factor));
-		assert!(keys.contains(play_pitch_factor));
-		assert!(keys.contains(dither));
+		assert!(keys.contains(LOAD_SKIP_SAMPLES));
+		assert!(keys.contains(LOAD_SKIP_PATTERNS));
+		assert!(keys.contains(LOAD_SKIP_PLUGINS));
+		assert!(keys.contains(LOAD_SKIP_SUBSONGS_INIT));
+		assert!(keys.contains(SEEK_SYNC_SAMPLES));
+		assert!(keys.contains(PLAY_TEMPO_FACTOR));
+		assert!(keys.contains(PLAY_PITCH_FACTOR));
+		assert!(keys.contains(DITHER));
 	}
 
 	#[test]
 	fn default_ctls_are_respected() {
-		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 		
 		assert_eq!(module.ctl_get_load_skip_samples().unwrap(), false);
 		assert_eq!(module.ctl_get_load_skip_patterns().unwrap(), false);
@@ -260,13 +260,6 @@ mod tests {
 
 	#[test]
 	fn initial_ctls_are_respected() {
-		use std::io::prelude::*;
-		use std::fs::File;
-
-		let mut f = File::open("empty_module.xm").expect("file not found");
-		let mut buf = Vec::new();
-		f.read_to_end(&mut buf);
-
 		let initial_ctls = vec!{
 			Ctl::SkipLoadingSamples(true),
 			Ctl::SkipLoadingPatterns(true),
@@ -277,7 +270,8 @@ mod tests {
 			Ctl::PlaybackPitchFactor(2.0),
 			Ctl::DitherMode16Bit(DitherMode::Simple),
 		};
-		let module = Module::create_from_memory(&mut buf, Logger::None, &initial_ctls).unwrap();
+
+		let module = test_helper::load_file_as_module_with_ctls("empty_module.xm", Logger::None, &initial_ctls).unwrap();
 		
 		assert_eq!(module.ctl_get_load_skip_samples().unwrap(), true);
 		assert_eq!(module.ctl_get_load_skip_patterns().unwrap(), true);
@@ -291,7 +285,7 @@ mod tests {
 
 	#[test]
 	fn clean_result_for_getting_unknown_ctl() {
-		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 
 		assert!(module.ctl_get("invalid_ctl").is_none());
 	}
@@ -300,7 +294,7 @@ mod tests {
 	fn clean_result_for_setting_invalid_ctl() {
 		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 
-		try_set_ctl(&mut module, dither, "26");
+		try_set_ctl(&mut module, DITHER, "26");
 	}
 
 	fn try_set_ctl (module: &mut Module, key: &str, new_val: &str) {
@@ -308,6 +302,6 @@ mod tests {
 		// assert!(!module.ctl_set(dither, "26"));
 
 		module.ctl_set(key, "26");
-		println!("Tried setting {:?} at {:?}, now at {:?}", key, new_val, module.ctl_get(dither).unwrap());
+		println!("Tried setting {:?} at {:?}, now at {:?}", key, new_val, module.ctl_get(DITHER).unwrap());
 	}
 }

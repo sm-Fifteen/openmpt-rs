@@ -161,12 +161,11 @@ impl Module {
 
 #[cfg(test)]
 mod tests {
-	use super::*;
 	use super::super::test_helper;
 
 	#[test]
 	fn dummy_file_opens_with_default_render_parameters() {
-		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 
 		assert_eq!(module.get_render_mastergain_millibel().unwrap(), 0);
 		assert_eq!(module.get_render_stereo_separation().unwrap(), 100);
