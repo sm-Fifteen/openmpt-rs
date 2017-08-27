@@ -1,5 +1,6 @@
 use openmpt_sys;
 use super::Module;
+use std::str::FromStr;
 use std::os::raw::*;
 
 pub enum DitherMode {
@@ -7,6 +8,32 @@ pub enum DitherMode {
 	ModPlug,
 	Simple,
 	None,
+}
+
+impl FromStr for DitherMode {
+	type Err = &'static str;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		match s {
+			"0" => Ok(DitherMode::None),
+			"1" => Ok(DitherMode::Auto),
+			"2" => Ok(DitherMode::ModPlug),
+			"3" => Ok(DitherMode::Simple),
+			_ => Err("Failed to parse return value as known Dither Mode")
+		}
+	}
+}
+
+fn parse_bool(s: &str) -> Result<bool, &'static str> {
+    match s {
+        "0" => Ok(false),
+        "1" => Ok(true),
+        _ => Err("Failed to parse return value as boolean"),
+    }
+}
+
+fn parse_float(s: &str) -> Result<f64, &'static str> {
+    s.parse().map_err(|_| "Failed to parse return value as boolean")
 }
 
 pub enum Ctl {
@@ -82,8 +109,28 @@ impl CtlKey {
 }
 
 impl Module {
-	// FIXME : Still figuring out a way to return Ctls
-	pub fn ctl_get_string(&self, ctl_key: CtlKey) -> Option<String> {
+	pub fn ctl_get(&self, ctl_key: &CtlKey) -> Result<Ctl, &str> {
+		let return_value = self.ctl_get_string(&ctl_key);
+
+		if let Some(value) = return_value {
+			let new_ctl = match *ctl_key {
+				CtlKey::SkipLoadingSamples => Ctl::SkipLoadingSamples(parse_bool(&value)?),
+				CtlKey::SkipLoadingPatterns => Ctl::SkipLoadingPatterns(parse_bool(&value)?),
+				CtlKey::SkipLoadingPlugins => Ctl::SkipLoadingPlugins(parse_bool(&value)?),
+				CtlKey::SkipSubsongPreinit => Ctl::SkipSubsongPreinit(parse_bool(&value)?),
+				CtlKey::SyncSamplesWhenSeeking => Ctl::SyncSamplesWhenSeeking(parse_bool(&value)?),
+				CtlKey::PlaybackTempoFactor => Ctl::PlaybackTempoFactor(parse_float(&value)?),
+				CtlKey::PlaybackPitchFactor => Ctl::PlaybackPitchFactor(parse_float(&value)?),
+				CtlKey::DitherMode16Bit => Ctl::DitherMode16Bit(DitherMode::from_str(&value)?),
+			};
+
+			Ok(new_ctl)
+		} else {
+			Err("No value for this ctl")
+		}
+	}
+
+	pub fn ctl_get_string(&self, ctl_key: &CtlKey) -> Option<String> {
 		let key = ctl_key.to_str();
 		let return_value = get_string_with_string!(key, {
 			openmpt_sys::openmpt_module_ctl_get(self.inner, key)
@@ -126,7 +173,18 @@ mod tests {
 
 		let initial_ctls = vec!{ Ctl::PlaybackTempoFactor(2.0), Ctl::PlaybackPitchFactor(2.0) };
 		let module = Module::create_from_memory(&mut buf, logging::Logger::None, &initial_ctls).unwrap();
-		assert_eq!(module.ctl_get_string(CtlKey::PlaybackTempoFactor).unwrap(), "2");
-		assert_eq!(module.ctl_get_string(CtlKey::PlaybackPitchFactor).unwrap(), "2");
+		
+		assert_eq!(module.ctl_get_string(&CtlKey::PlaybackTempoFactor).unwrap(), "2");
+		assert_eq!(module.ctl_get_string(&CtlKey::PlaybackPitchFactor).unwrap(), "2");
+
+		match module.ctl_get(&CtlKey::PlaybackTempoFactor).unwrap() {
+			Ctl::PlaybackTempoFactor(2.0) => (),
+			_ => panic!(),
+		}
+
+		match module.ctl_get(&CtlKey::PlaybackPitchFactor).unwrap() {
+			Ctl::PlaybackPitchFactor(2.0) => (),
+			_ => panic!(),
+		}
 	}
 }
