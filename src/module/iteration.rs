@@ -405,6 +405,33 @@ mod tests {
 	use super::super::test_helper;
 
 	#[test]
+	fn empty_module_list_names() {
+		// None of these should panic from a null return value
+		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+
+		if module.get_num_orders() > 0 {
+			let pattern = module.get_pattern_by_order(0).unwrap();
+			println!("Name of Pattern #0 : {:?}", pattern.get_name());
+		}
+
+		if module.get_num_channels() > 0 {
+			println!("Name of Channel #0 : {:?}", module.get_channel_name(0));
+		}
+
+		if module.get_num_instruments() > 0 {
+			println!("Name of Instrument #0 : {:?}", module.get_instrument_name(0));
+		}
+
+		if module.get_num_samples() > 0 {
+			println!("Name of Sample #0 : {:?}", module.get_sample_name(0));
+		}
+
+		if module.get_num_subsongs() > 0 {
+			println!("Name of Subsong #0 : {:?}", module.get_subsong_name(0));
+		}
+	}
+
+	#[test]
 	fn unatco_iterative_reading() {
 		iterative_reading("UNATCO.it");
 	}
