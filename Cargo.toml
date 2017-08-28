@@ -5,3 +5,6 @@ authors = ["sm-Fifteen <riboshom@hotmail.com>"]
 
 [dependencies]
 openmpt-sys = "0.1.0"
+
+[dev-dependencies]
+hound = "3.1.0"
