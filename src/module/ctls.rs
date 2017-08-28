@@ -14,9 +14,13 @@ const DITHER:&str = "dither";
 
 #[derive(PartialEq, Debug)]
 pub enum DitherMode {
+	/// Default mode. Chosen by OpenMPT code, might change.
 	Auto,
+	/// Rectangular, 0.5 bit depth, no noise shaping (original ModPlug Tracker).
 	ModPlug,
+	/// Rectangular, 1 bit depth, simple 1st order noise shaping
 	Simple,
+	/// No dithering.
 	None,
 }
 
@@ -34,14 +38,27 @@ impl FromStr for DitherMode {
 	}
 }
 
+/// Ctls to use with `create`, `create_from_memory`, and
+/// `could_open_propability` in lists of initial ctls.
 pub enum Ctl {
+	/// Set to `true` to avoid loading samples into memory
 	SkipLoadingSamples(bool),
+	/// Set to `true` to avoid loading patterns into memory
 	SkipLoadingPatterns(bool),
+	/// Set to `true` to avoid loading plugins
 	SkipLoadingPlugins(bool),
+	/// Set to `true` to avoid pre-initializing sub-songs.
+	///
+	/// Skipping results in faster module loading but slower seeking.
 	SkipSubsongPreinit(bool),
+	/// Set to `true` to sync sample playback when using
+	/// `set_position_seconds` or `set_position_order_row`.
 	SyncSamplesWhenSeeking(bool),
+	/// Set a floating point tempo factor. 1.0 is the default tempo.
 	PlaybackTempoFactor(c_double),
+	/// Set a floating point pitch factor. 1.0 is the default pitch.
 	PlaybackPitchFactor(c_double),
+	/// Set the dither algorithm that is used for the 16 bit versions of the rendering methods.
 	DitherMode16Bit(DitherMode),
 }
 
@@ -80,6 +97,7 @@ impl Ctl {
 }
 
 impl Module {
+	/// Get whether or not to avoid loading samples into memory.
 	pub fn ctl_get_load_skip_samples(&self) -> Option<bool> {
 		let return_val = self.ctl_get(LOAD_SKIP_SAMPLES);
 
@@ -90,10 +108,12 @@ impl Module {
 		}
 	}
 
+	/// Set whether or not to avoid loading samples into memory.
 	pub fn ctl_set_load_skip_samples(&mut self, value: bool) -> bool {
 		self.enum_ctl_set(&Ctl::SkipLoadingSamples(value))
 	}
 
+	/// Get whether or not to avoid loading patterns into memory.
 	pub fn ctl_get_load_skip_patterns(&self) -> Option<bool> {
 		let return_val = self.ctl_get(LOAD_SKIP_PATTERNS);
 
@@ -104,10 +124,12 @@ impl Module {
 		}
 	}
 
+	/// Set whether or not to avoid loading patterns into memory.
 	pub fn ctl_set_load_skip_patterns(&mut self, value: bool) -> bool {
 		self.enum_ctl_set(&Ctl::SkipLoadingPatterns(value))
 	}
 
+	/// Get whether or not to avoid loading plugins.
 	pub fn ctl_get_load_skip_plugins(&self) -> Option<bool> {
 		let return_val = self.ctl_get(LOAD_SKIP_PLUGINS);
 
@@ -118,10 +140,12 @@ impl Module {
 		}
 	}
 
+	/// Set whether or not to avoid loading plugins.
 	pub fn ctl_set_load_skip_plugins(&mut self, value: bool) -> bool {
 		self.enum_ctl_set(&Ctl::SkipLoadingPlugins(value))
 	}
 
+	/// Get whether or not to avoid pre-initializing sub-songs.
 	pub fn ctl_get_load_skip_subsongs_init(&self) -> Option<bool> {
 		let return_val = self.ctl_get(LOAD_SKIP_SUBSONGS_INIT);
 
@@ -132,10 +156,12 @@ impl Module {
 		}
 	}
 
+	/// Set whether or not to avoid pre-initializing sub-songs.
 	pub fn ctl_set_load_skip_subsongs_init(&mut self, value: bool) -> bool {
 		self.enum_ctl_set(&Ctl::SkipSubsongPreinit(value))
 	}
 
+	/// Get whether or not to sync sample playback when seeking.
 	pub fn ctl_get_seek_sync_samples(&self) -> Option<bool> {
 		let return_val = self.ctl_get(SEEK_SYNC_SAMPLES);
 
@@ -146,10 +172,12 @@ impl Module {
 		}
 	}
 
+	/// Set whether or not to sync sample playback when seeking.
 	pub fn ctl_set_seek_sync_samples(&mut self, value: bool) -> bool {
 		self.enum_ctl_set(&Ctl::SyncSamplesWhenSeeking(value))
 	}
 
+	/// Get the floating point tempo factor.
 	pub fn ctl_get_play_tempo_factor(&self) -> Option<c_double> {
 		let return_val = self.ctl_get(PLAY_TEMPO_FACTOR);
 
@@ -160,10 +188,12 @@ impl Module {
 		}
 	}
 
+	/// Set a floating point tempo factor.
 	pub fn ctl_set_play_tempo_factor(&mut self, value: c_double) -> bool {
 		self.enum_ctl_set(&Ctl::PlaybackTempoFactor(value))
 	}
 
+	/// Get the floating point pitch factor.
 	pub fn ctl_get_play_pitch_factor(&self) -> Option<c_double> {
 		let return_val = self.ctl_get(PLAY_PITCH_FACTOR);
 
@@ -174,10 +204,12 @@ impl Module {
 		}
 	}
 
+	/// Set a floating point pitch factor
 	pub fn ctl_set_play_pitch_factor(&mut self, value: c_double) -> bool {
 		self.enum_ctl_set(&Ctl::PlaybackPitchFactor(value))
 	}
 
+	/// Get the dither algorithm that is used for the 16 bit versions of the rendering methods.
 	pub fn ctl_get_dither(&self) -> Option<DitherMode> {
 		let return_val = self.ctl_get(DITHER);
 
@@ -188,10 +220,18 @@ impl Module {
 		}
 	}
 
+	/// Set the dither algorithm that is used for the 16 bit versions of the rendering methods.
 	pub fn ctl_set_dither(&mut self, value: DitherMode) -> bool {
 		self.enum_ctl_set(&Ctl::DitherMode16Bit(value))
 	}
 
+	/// Get ctl value directly, as a string.
+	/// 
+	/// ### Parameters
+	/// * `ctl` : The ctl key whose value should be retrieved.
+	///
+	/// ### Returns
+	/// The associated ctl value, or None on failure.
 	pub fn ctl_get(&self, key: &str) -> Option<String> {
 		get_string_with_string!(key, {
 			openmpt_sys::openmpt_module_ctl_get(self.inner, key)
@@ -205,6 +245,14 @@ impl Module {
 		self.ctl_set(&key, &val)
 	}
 
+	/// Set ctl value directly, using strings.
+	/// 
+	/// ### Parameters
+	/// * `ctl` : The ctl key whose value should be set.
+	/// * `value` : The value that should be set.
+	///
+	/// ### Returns
+	/// Whether or not the operation has succeded.
 	pub fn ctl_set(&mut self, key: &str, val: &str) -> bool {
 		let return_value = with_2strings!(key, val, {
 			openmpt_sys::openmpt_module_ctl_set(self.inner, key, val)
@@ -213,6 +261,10 @@ impl Module {
 		if return_value == 1 { true } else { false }
 	}
 
+	/// Retrieve supported ctl keys.
+	///
+	/// ### Returns
+	/// A semicolon-separated list containing all supported ctl keys.
 	pub fn get_ctls(&self) -> String {
 		let opt_string = get_string! {
 			openmpt_sys::openmpt_module_get_ctls(self.inner)
