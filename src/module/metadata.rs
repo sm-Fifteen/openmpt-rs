@@ -3,16 +3,27 @@ use openmpt_sys;
 
 #[derive(Debug)]
 pub enum MetadataKey {
+	/// Module format extension (e.g. it)
 	TypeExt,
+	/// Tracker name associated with the module format (e.g. Impulse Tracker)
 	TypeName,
+	/// Container format the module file is embedded in, if any (e.g. umx)
 	ContainerExt,
+	/// Full container name if the module is embedded in a container (e.g. Unreal Music)
 	ContainerName,
+	/// Module title
 	ModuleTitle,
+	/// Author of the module
 	ModuleArtist,
+	/// Tracker that was (most likely) used to save the module file, if known
 	ModuleTracker,
+	/// Date the module was last saved, in ISO-8601 format.
 	ModuleSaveDate,
+	/// Song message. If the song message is empty or the module format does not support song messages, an empty string is returned.
 	SongMessage,
+	/// Song message. If the song message is empty or the module format does not support song messages, a list of instrument and sample names is returned instead.
 	SongMessageOrInstruments,
+	/// A list of warnings that were generated while loading the module.
 	LoadWarnings,
 }
 
@@ -36,6 +47,13 @@ impl MetadataKey {
 }
 
 impl Module {
+	/// Get a metadata item value.
+	///
+	/// ### Parameters
+	/// * `key` : Metadata item key to query, from the `MetadataKey` enum.
+	///
+	/// ### Returns
+	/// The associated value for key, or None in case of error.
 	pub fn get_metadata(&self, key : MetadataKey) -> Option<String> {
 		let key = key.to_str();
 		get_string_with_string! (key, {

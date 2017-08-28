@@ -1,6 +1,9 @@
-// All the consts and enums here are from openmpt's soundlib/modcommand.h
-// They are not part of the public API and change to OpenMPT may break those without warning.
-// They are only available here for the sake of conveinience and completeness.
+//! Data structures meant to simplify pattern-matching against pattern data.
+//!
+//! # Remarks
+//! All the consts and enums here are from openmpt's soundlib/modcommand.h
+//! They are not part of the public API and change to OpenMPT may break those without warning.
+//! They are only available here for the sake of conveinience and completeness.
 
 const NOTE_NONE:u8 = 0;
 const NOTE_MIN:u8 = 1;
@@ -20,6 +23,19 @@ pub struct ModCommand {
 }
 
 impl ModCommand {
+	/// Construct a ModCommand from pattern cell data.
+	///
+	/// ### Parameters
+	/// * `note` : The raw note command
+	/// * `instr` : The raw instrument index
+	/// * `volcmd` : The raw volume command
+	/// * `command` : The raw effect command
+	/// * `vol` : The raw volume parameter
+	/// * `param` : The raw effect parameter
+	///
+	/// ### Returns
+	/// The resulting ModCommand, or an error message
+	/// if one of the parameter has an unknown or invalid value
 	pub fn new(note : u8, instr : u8, volcmd : u8, command : u8, vol : u8, param : u8) -> Result<ModCommand, String> {
 		let note_type = ModCommand::note_from_value(note);
 		let note_type = match note_type {
@@ -47,6 +63,7 @@ impl ModCommand {
 		})
 	}
 
+	/// Returns the note index corresponding to a middle C (C4).
 	pub fn middle_c() -> u8 {
 		NOTE_MIDDLEC
 	}
@@ -138,12 +155,14 @@ impl ModCommand {
 	}
 }
 
+/// An enum containing the different value for Note commands.
 pub enum Note {
 	None,
 	Note(u8),
 	Special(SpecialNote),
 }
 
+/// An enum containing the special values for Note commands.
 pub enum SpecialNote {
 	KeyOff,
 	NoteCut,
@@ -152,6 +171,17 @@ pub enum SpecialNote {
 	ParamControlSmooth,
 }
 
+/// An enum containing the different value for Volume commands.
+///
+/// Each variant contains its own volume parameter where applicable.
+///
+/// ### Remarks
+/// The documentation for each effect is there for reference purposes only
+/// and can be interpreted very differently depending on the format,
+/// internal parameters, tracker last used, whether sub-semitone variations
+/// use frequencies or periods, etc.
+///
+/// The libopenmpt developpers **do not recommend** relying on these, **you have been warned**.
 pub enum VolumeCommand {
 	None,
 	Volume(u8),
@@ -175,81 +205,99 @@ pub enum VolumeCommand {
 	Offset(u8),
 }
 
+/// An enum containing the different value for Effect commands.
+///
+/// Each variant contains its own effect parameter where applicable.
+/// Effects that read their parameter as 2 x and y values have them pre-separated.
+///
+/// ### Remarks
+/// The documentation for each effect is there for reference purposes only
+/// and can be interpreted very differently depending on the format,
+/// internal parameters, tracker last used, whether sub-semitone variations
+/// use frequencies or periods, etc.
+///
+/// The libopenmpt developpers **do not recommend** relying on these, **you have been warned**.
 pub enum EffectCommand {
 	None,
-	// Cycle between note, note+x and note+y on each tick
+	/// Cycle between note, note+x and note+y on each tick
 	Arpeggio (u8, u8),
-	// Raise pitch by xy per tick, sometimes including the first
-	// Slide fraction is generally 1/16th of a semitone
+	/// Raise pitch by xy per tick, sometimes including the first
+	///
+	/// Slide fraction is generally 1/16th of a semitone
 	PortamentoUp (u8),
-	// Lower pitch by xy per tick, sometimes including the first
-	// Slide fraction is generally 1/16th of a semitone
+	/// Lower pitch by xy per tick, sometimes including the first
+	///
+	/// Slide fraction is generally 1/16th of a semitone
 	PortamentoDown (u8),
-	// Slide pitch of old note towards new note by xy per tick and stop once reached.
-	// Slide fraction is generally 1/16th of a semitone
+	/// Slide pitch of old note towards new note by xy per tick and stop once reached.
+	///
+	/// Slide fraction is generally 1/16th of a semitone
 	TonePortamento (u8),
-	// Modulates frequency at a speed of x steps (of 64) *PER ROW* and depth y
-	// Depth is generally in 1/16th of a semitone
+	/// Modulates frequency at a speed of x steps (of 64) *PER ROW* and depth y
+	///
+	/// Depth is generally in 1/16th of a semitone
 	Vibrato (u8, u8),
-	// Volume Slide + Continue portamento
+	/// Volume Slide + Continue portamento
 	TonePortaVol (u8, u8),
-	// Volume Slide + Continue vibrato
+	/// Volume Slide + Continue vibrato
 	VibratoVol (u8, u8),
-	// Modulates sample volume at a speed of x steps (of 64) *PER ROW* and depth y
+	/// Modulates sample volume at a speed of x steps (of 64) *PER ROW* and depth y
 	Tremolo (u8, u8),
-	// Set panning from 0x0 to 0xF
+	/// Set panning from 0x0 to 0xF
 	Panning8 (u8),
-	// Start playing sample at position xy * 256
+	/// Start playing sample at position xy * 256
 	Offset(u8),
-	// Raise sample volume by x or lower by y on each tick but the first
+	/// Raise sample volume by x or lower by y on each tick but the first
 	VolumeSlide(u8, u8),
-	// Jump to pattern at order xy
+	/// Jump to pattern at order xy
 	PositionJump(u8),
-	// Set sample volume at xy (between 0 and 0x40)
+	/// Set sample volume at xy (between 0 and 0x40)
 	Volume(u8),
-	// Jump to row xy of pattern set to play next
+	/// Jump to row xy of pattern set to play next
 	PatternBreak(u8),
-	// Retrigger every y ticks, x affects retrigger volume when set
+	/// Retrigger every y ticks, x affects retrigger volume when set
 	Retrig(u8, u8),
-	// Set speed at xy ticks per row
+	/// Set speed at xy ticks per row
 	Speed(u8),
-	// Set tempo at xy beats per minute
+	/// Set tempo at xy beats per minute
 	Tempo(u8),
-	// Turn volume on for x+1 ticks and mute for y+1 ticks repeatedly
+	/// Turn volume on for x+1 ticks and mute for y+1 ticks repeatedly
 	Tremor(u8, u8),
-	// (Mod and XM) Super command, with x the subcommand and y the parameter.
+	/// (Mod and XM) Super command, with x the subcommand and y the parameter.
 	ModCmdEX(u8, u8),
-	// (S3M and IT) Super command, with x the subcommand and y the parameter.
+	/// (S3M and IT) Super command, with x the subcommand and y the parameter.
 	S3MCmdEX(u8, u8),
-	// Set channel volume at xy (between 0 and 0x40)
+	/// Set channel volume at xy (between 0 and 0x40)
 	ChannelVolume(u8),
-	// Raise channel volume by x or lower by y on each tick but the first
+	/// Raise channel volume by x or lower by y on each tick but the first
 	ChannelVolSlide(u8, u8),
-	// Set global volume at xy (between 0 and 0x40)
+	/// Set global volume at xy (between 0 and 0x40)
 	GlobalVolume(u8),
-	// Raise global volume by x or lower by y on each tick but the first
+	/// Raise global volume by x or lower by y on each tick but the first
 	GlobalVolSlide(u8, u8),
-	// Trigger Note Off after xy ticks
+	/// Trigger Note Off after xy ticks
 	KeyOff(u8),
-	// Same as vibrato, but depth is 4 times finer
+	/// Same as vibrato, but depth is 4 times finer
 	FineVibrato(u8, u8),
-	// Modulate panning at a speed of x steps (of 64) *PER ROW* and depth y
+	/// Modulate panning at a speed of x steps (of 64) *PER ROW* and depth y
 	Panbrello(u8, u8),
-	// (XM only) Super command, with x the subcommand and y the parameter.
+	/// (XM only) Super command, with x the subcommand and y the parameter.
 	XFinePortaUpDown(u8, u8),
-	// Slide panning position right by x or left by y on each tick but the first
-	// Depending on format and settings, it could also be apply on the first tick only or on every tick.
+	/// Slide panning position right by x or left by y on each tick but the first
+	///
+	/// Depending on format and settings, it could also be apply on the first tick only or on every tick.
 	PanningSlide(u8, u8),
-	// Sets the volume envelope position to xy ticks
+	/// Sets the volume envelope position to xy ticks
 	SetEnvPosition(u8),
-	// Execute a midi macro
+	/// Execute a midi macro
 	Midi(u8),
-	// Execute an interpolated midi macro
+	/// Execute an interpolated midi macro
 	SmoothMidi(u8),
-	// Delay note for x ticks and cut after another y ticks.
-	// If the row ends before either effect is applied (speed is greater than x or x+y), the effect won't be applied.
+	/// Delay note for x ticks and cut after another y ticks.
+	///
+	/// If the row ends before either effect is applied (speed is greater than x or x+y), that effect won't be applied.
 	DelayCut(u8, u8),
-	// Combines the parameter value with the one on the row above it
+	/// Combines the parameter value with the one on the row above it
 	XParam(u8),
 	NoteSlideUp(u8, u8),
 	NoteSlideDown(u8, u8),
