@@ -7,6 +7,7 @@ pub mod metadata;
 pub mod mod_command;
 pub mod iteration;
 pub mod render;
+pub mod stream;
 #[cfg(test)] mod test_helper;
 
 pub struct Module {
@@ -37,6 +38,33 @@ impl Module {
 			return Err(())
 		}
 		
+		let mut module = Module { inner : module_ptr };
+
+		// Set each init ctl by hand, lists of stucts of FFI string pointers are too much of a nightmare to deal with in Rust
+		for init_ctl in init_ctls {
+			module.enum_ctl_set(init_ctl);
+		}
+
+		Ok(module)
+	}
+
+	pub fn create<T : stream::ModuleStream>(stream : &mut T, logger : Logger, init_ctls : &[ctls::Ctl]) -> Result<Module, ()> {
+		let stream_ptr:*mut T = stream;
+		
+		let module_ptr = unsafe {
+			openmpt_sys::openmpt_module_create(
+				T::get_file_callbacks(),
+				stream_ptr as *mut _,
+				logger.log_func(),
+				ptr::null_mut(), // user (As unsafe as it gets! Not touching this.)
+				ptr::null() // init_ctls (Setting those manually below.)
+			)
+		};
+
+		if module_ptr.is_null() {
+			return Err(())
+		}
+
 		let mut module = Module { inner : module_ptr };
 
 		// Set each init ctl by hand, lists of stucts of FFI string pointers are too much of a nightmare to deal with in Rust
@@ -123,6 +151,12 @@ mod tests {
 	#[test]
 	fn dummy_file_loads_successfully() {
 		let module = test_helper::load_file_as_module("empty_module.xm");
+		assert!(module.is_ok());
+	}
+
+	#[test]
+	fn create_from_stream_doesnt_explode_sometimes() {
+		let module = test_helper::stream_file_as_module("empty_module.xm");
 		assert!(module.is_ok());
 	}
 }
