@@ -19,6 +19,14 @@ pub struct Cell<'m> {
 }
 
 impl Module {
+	/// Get pattern at order position.
+	///
+	/// ### Parameters
+	/// * `order_num` : The position from which the pattern should be retrieved.
+	///
+	/// ### Returns
+	/// A Pattern wrapper for the pattern found at the given order position of the current sequence,
+	/// or None if no such pattern exists.
 	pub fn get_pattern_by_order(&self, order_num: i32) -> Option<Pattern> {
 		let pattern_num = unsafe {
 			openmpt_sys::openmpt_module_get_order_pattern(self.inner, order_num)
@@ -31,6 +39,13 @@ impl Module {
 		}
 	}
 
+	/// Get pattern by index.
+	///
+	/// ### Parameters
+	/// * `pattern_num` : The index of the pattern that should be retrieved.
+	///
+	/// ### Returns
+	/// A Pattern wrapper for the pattern, or None if no such pattern exists.
 	pub fn get_pattern_by_number (&self, pattern_num: i32) -> Option<Pattern> {
 		if pattern_num < 0 || pattern_num >= self.get_num_patterns() {
 			None
@@ -39,42 +54,83 @@ impl Module {
 		}
 	}
 
+	/// Get the number of distinct patterns for that module.
+	///
+	/// ### Returns
+	/// The number of distinct patterns in the module.
 	pub fn get_num_patterns (&self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_patterns(self.inner)
 		}
 	}
 
+	/// Get the length of the order sequence for that module.
+	///
+	/// ### Returns
+	/// The number of orders in the current sequence of the module.
 	pub fn get_num_orders (&self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_orders(self.inner)
 		}
 	}
 
+	/// Get the number of pattern channels.
+	///
+	/// ### Returns
+	/// The number of pattern channels in the module. Not all channels do necessarily contain data.
+	///
+	/// ### Remarks
+	/// The number of pattern channels is completely independent of the number of output channels.
 	pub fn get_num_channels (&self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_channels(self.inner)
 		}
 	}
 
+	/// Get the number of instruments.
+	///
+	/// ### Returns
+	/// The number of instrument slots in the module.
+	///
+	/// ### Remarks
+	/// Instruments are a layer on top of samples, and are not supported by all module formats.
 	pub fn get_num_instruments (&self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_instruments(self.inner)
 		}
 	}
 
+	/// Get the number of samples.
+	///
+	/// ### Returns
+	/// The number of sample slots in the module.
 	pub fn get_num_samples (&self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_samples(self.inner)
 		}
 	}
 
+	/// Get the number of sub-songs.
+	///
+	/// ### Returns
+	/// The number of sub-songs in the module.
+	/// 
+	/// This includes any "hidden" songs (songs that share the same sequence,
+	/// but start at different order indices) and "normal" sub-songs
+	/// or "sequences" (if the format supports them).
 	pub fn get_num_subsongs (&self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_subsongs(self.inner)
 		}
 	}
 
+	/// Get an instrument name.
+	///
+	/// ### Parameters
+	/// * `instrument_num` : The index of the instrument whose name should be retrieved
+	///
+	/// ### Returns
+	/// The instrument name.
 	pub fn get_instrument_name (&self, instrument_num: i32) -> String {
 		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_instrument_name(self.inner, instrument_num)
@@ -83,6 +139,13 @@ impl Module {
 		opt_string.expect("Got null pointer instead of string")
 	}
 	
+	/// Get a sample name.
+	///
+	/// ### Parameters
+	/// * `sample_num` : The index of the sample whose name should be retrieved
+	///
+	/// ### Returns
+	/// The sample name.
 	pub fn get_sample_name (&self, sample_num: i32) -> String {
 		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_sample_name(self.inner, sample_num)
@@ -91,6 +154,13 @@ impl Module {
 		opt_string.expect("Got null pointer instead of string")
 	}
 
+	/// Get a channel name.
+	///
+	/// ### Parameters
+	/// * `channel_num` : The index of the channel whose name should be retrieved
+	///
+	/// ### Returns
+	/// The channel name.
 	pub fn get_channel_name (&self, channel_num: i32) -> String {
 		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_channel_name(self.inner, channel_num)
@@ -99,6 +169,13 @@ impl Module {
 		opt_string.expect("Got null pointer instead of string")
 	}
 
+	/// Get a sub-song name.
+	///
+	/// ### Parameters
+	/// * `subsong_num` : The index of the sub-song whose name should be retrieved
+	///
+	/// ### Returns
+	/// The sub-song name.
 	pub fn get_subsong_name (&self, subsong_num: i32) -> String {
 		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_subsong_name(self.inner, subsong_num)
@@ -109,6 +186,13 @@ impl Module {
 }
 
 impl<'m> Pattern<'m> {
+	/// Get pattern row by index.
+	///
+	/// ### Parameters
+	/// * `row_num` : The index of the row that should be retrieved.
+	///
+	/// ### Returns
+	/// A Row wrapper for the row, or None if no such row exists.
 	pub fn get_row_by_number (&'m self, row_num: i32) -> Option<Row<'m>> {
 		let pattern_num_rows = self.get_num_rows();
 
@@ -121,6 +205,10 @@ impl<'m> Pattern<'m> {
 		}
 	}
 
+	/// Get name for this pattern/order.
+	///
+	/// ### Returns
+	/// The pattern name.
 	pub fn get_name (&self) -> String {
 		// Order names apparently just gives you the name of the pattern
 		let opt_string = get_string!{
@@ -130,6 +218,10 @@ impl<'m> Pattern<'m> {
 		opt_string.expect("Got null pointer instead of string")
 	}
 
+	/// Get the number of rows for this pattern.
+	///
+	/// ### Returns
+	/// The number of rows in the pattern.
 	pub fn get_num_rows(&self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_pattern_num_rows(self.module.inner, self.num)
@@ -138,6 +230,13 @@ impl<'m> Pattern<'m> {
 }
 
 impl<'m> Row<'m> {
+	/// Get pattern cell by pattern channel.
+	///
+	/// ### Parameters
+	/// * `channel_num` : The index of the pattern channel at which the cell should be retrieved.
+	///
+	/// ### Returns
+	/// A Cell wrapper for the cell, or None if the channel doesn't exist.
 	pub fn get_cell_by_channel (&'m self, channel_num: i32) -> Option<Cell<'m>> {
 		assert!(self.num < self.pattern.get_num_rows());
 		assert!(self.num >= 0);
@@ -153,6 +252,10 @@ impl<'m> Row<'m> {
 }
 
 impl <'m> Cell<'m> {
+	/// Get all of the cell's content as a ModCommand.
+	///
+	/// ### Returns
+	/// A ModCommand containing the raw cell data as a tagged union, for easy pattern-matching.
 	pub fn get_data(&self) -> Result<ModCommand, String> {
 		ModCommand::new(
 			self.get_data_by_command(ModuleCommandIndex::Note),
@@ -164,6 +267,13 @@ impl <'m> Cell<'m> {
 		)
 	}
 
+	/// Get raw cell content.
+	///
+	/// ### Parameters
+	/// * `command` : The cell index at which the data should be retrieved, from `ModuleCommandIndex`.
+	///
+	/// ### Returns
+	/// The internal, raw cell data at the given command index.
 	pub fn get_data_by_command(&self, command : ModuleCommandIndex) -> u8 {
 		unsafe{
 			openmpt_sys::openmpt_module_get_pattern_row_channel_command(
@@ -176,6 +286,14 @@ impl <'m> Cell<'m> {
 		}
 	}
 
+	/// Get formatted (human-readable) cell content.
+	///
+	/// ### Parameters
+	/// * `width` : The maximum number of characters the string should contain. 0 means no limit.
+	/// * `pad` : 	If true, the string will be resized to the exact length provided in the width parameter.
+	///
+	/// ### Returns
+	/// The formatted pattern data for that cell.
 	pub fn get_formatted(&self, width: usize, pad: bool) -> String {
 		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_format_pattern_row_channel(
@@ -191,6 +309,13 @@ impl <'m> Cell<'m> {
 		opt_string.expect("Got null pointer instead of string")
 	}
 
+	/// Get formatted (human-readable) cell content.
+	///
+	/// ### Parameters
+	/// * `command` : The cell index at which the data should be retrieved, from `ModuleCommandIndex`.
+	///
+	/// ### Returns
+	/// The formatted pattern data for that cell, at the given command index.
 	pub fn get_formatted_by_command(&self, command: ModuleCommandIndex) -> String {
 		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_format_pattern_row_channel_command(
@@ -205,6 +330,14 @@ impl <'m> Cell<'m> {
 		opt_string.expect("Got null pointer instead of string")
 	}
 
+	/// Get highlighting information for formatted cell content.
+	///
+	/// ### Parameters
+	/// * `width` : The maximum number of characters the string should contain. 0 means no limit.
+	/// * `pad` : 	If true, the string will be resized to the exact length provided in the width parameter.
+	///
+	/// ### Returns
+	/// The highlighting string for the formatted pattern data as retrieved by `get_formatted` for that cell.
 	pub fn get_highlight(&self, width: usize, pad: bool) -> String {
 		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_highlight_pattern_row_channel(
@@ -220,6 +353,13 @@ impl <'m> Cell<'m> {
 		opt_string.expect("Got null pointer instead of string")
 	}
 
+	/// Get highlighting information for formatted pattern content.
+	///
+	/// ### Parameters
+	/// * `command` : The cell index at which the data should be retrieved, from `ModuleCommandIndex`.
+	///
+	/// ### Returns
+	/// The highlighting string for the formatted pattern data as retrieved by `get_formatted` for that cell, at the given command index.
 	pub fn get_highlight_by_command(&self, command: ModuleCommandIndex) -> String {
 		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_highlight_pattern_row_channel_command(
@@ -235,6 +375,8 @@ impl <'m> Cell<'m> {
 	}
 }
 
+/// Parameter index to use with `get_data_by_command`,
+/// `get_formatted_by_command` and `get_highlight_by_command`.
 pub enum ModuleCommandIndex {
 	Note,
 	Instrument,
