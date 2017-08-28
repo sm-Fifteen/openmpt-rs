@@ -19,9 +19,13 @@ pub trait SeekableStream : ModuleStream {
 impl<T> ModuleStream for T where T:Read {
 	unsafe extern "C" fn openmpt_read(stream: *mut c_void, dst: *mut c_void, bytes: usize) -> usize {
 		let mut stream_source: &mut T = &mut *(stream as *mut T);
-		let mut buf = Vec::with_capacity(bytes);
+		let mut buf = vec![0;bytes];
 
-		match stream_source.read(&mut buf) {
+		//println!("Read {} bytes", bytes);
+		let read_result = stream_source.read(&mut buf);
+		//println!("Read result : {:?}", read_result);
+
+		match read_result {
 			Ok(0) => 0,
 			Ok(n) => {
 				ptr::copy(buf.as_ptr() as *const c_void, dst, n);
