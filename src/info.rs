@@ -7,13 +7,13 @@ use std::str;
 /// A struct containing the OpenMPT version number, in big-endian.
 ///
 /// `CoreVersion(majormajor, major, minor, minorminor)`
-pub struct CoreVersion (u8,	u8,	u8,	u8);
+pub struct CoreVersion (pub u8,	pub u8,	pub u8,	pub u8);
 
 #[derive(Debug)]
 /// A struct containing the libopenmpt version number, in big-endian.
 ///
 /// `LibraryVersion(major, minor, revision)`
-pub struct LibraryVersion (u8, u8, u16);
+pub struct LibraryVersion (pub u8, pub u8, pub u16);
 
 #[derive(Debug)]
 /// An enum containing all the potentially valid keys for `openmpt_get_string`
