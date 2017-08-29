@@ -1,5 +1,4 @@
-//! # Info
-//! Get library-related metadata
+//! Functions and types related to querying library information.
 
 use openmpt_sys;
 use std::str;

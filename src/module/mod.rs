@@ -1,3 +1,25 @@
+//! The definition of the openmpt_module wrapper, analogous to
+//! the module class in the C++ API.
+//!
+//! This contains everything needed to create instances Modules
+//! using module files or data. The rest is defined in the various submodules.
+//!
+//! # Thread-safety
+//! This wrapper is written on top of the C API, which the openmpt developpers
+//! reccomand against attempting to access concurrently, unlike with the C++
+//! API where const member functions are safe. This is because, while the C and C++ public APIs
+//! use the same underlying C++ functions, the C API tends to mutate the underlying
+//! object to store anything that cannot be returned immediately, such as
+//! exceptions.
+//!
+//! However, there are cases where concurrent access is indeed safe.
+//! For that reason, methods in the Module implementation use mutable or
+//! immutable references to self according to whether or not
+//! the corresponding C++ method is const or not, but this does not necessarily
+//! mean that they cannot mutate the underlying object. Concurrent access should be
+//! avoided.
+
+
 use openmpt_sys;
 use std::os::raw::*;
 use std::ptr;

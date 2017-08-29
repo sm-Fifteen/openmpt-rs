@@ -1,3 +1,5 @@
+//! Generic traits used to provide callbacks for `Module::create()`.
+
 use openmpt_sys;
 use std::ptr;
 use std::os::raw::*;

@@ -1,3 +1,6 @@
+//! Definitions for all types and methods used to set and query
+//! libopenmpt parameters for the loaded module
+
 use openmpt_sys;
 use super::Module;
 use std::str::FromStr;

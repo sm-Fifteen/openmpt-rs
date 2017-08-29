@@ -1,3 +1,6 @@
+//! Definitions for all types and methods used to iterate
+//! on the module's pattern data
+
 use openmpt_sys;
 use super::Module;
 use super::super::mod_command::ModCommand;

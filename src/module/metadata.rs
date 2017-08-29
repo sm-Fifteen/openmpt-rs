@@ -1,3 +1,5 @@
+//! Definitions for all types and methods used query module metadata
+
 use super::Module;
 use openmpt_sys;
 

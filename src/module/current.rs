@@ -1,3 +1,6 @@
+//! Definitions for all methods used to set and query
+//! the current state of the module
+
 use super::Module;
 use openmpt_sys;
 use std::os::raw::*;
