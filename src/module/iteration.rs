@@ -1,6 +1,6 @@
 use openmpt_sys;
 use super::Module;
-use super::mod_command::ModCommand;
+use super::super::mod_command::ModCommand;
 use std::os::raw::c_int;
 
 pub struct Pattern<'m> {

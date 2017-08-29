@@ -4,7 +4,6 @@ use std::ptr;
 
 pub mod ctls;
 pub mod metadata;
-pub mod mod_command;
 pub mod iteration;
 pub mod render;
 pub mod stream;
