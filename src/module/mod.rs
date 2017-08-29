@@ -12,12 +12,9 @@
 //! object to store anything that cannot be returned immediately, such as
 //! exceptions.
 //!
-//! However, there are cases where concurrent access is indeed safe.
-//! For that reason, methods in the Module implementation use mutable or
-//! immutable references to self according to whether or not
-//! the corresponding C++ method is const or not, but this does not necessarily
-//! mean that they cannot mutate the underlying object. Concurrent access should be
-//! avoided.
+//! Because of that, all methods for `Module` have been marked as requiring a
+//! mutable reference to `self`, in order to ensure that no concurrent access to
+//! the underlying object can ever be made.
 
 
 use openmpt_sys;
@@ -217,19 +214,19 @@ mod tests {
 
 	#[test]
 	fn text_file_fails_to_load() {
-		let module = test_helper::load_file_as_module("Cargo.toml");
+		let mut module = test_helper::load_file_as_module("Cargo.toml");
 		assert!(module.is_err());
 	}
 
 	#[test]
 	fn dummy_file_loads_successfully() {
-		let module = test_helper::load_file_as_module("empty_module.xm");
+		let mut module = test_helper::load_file_as_module("empty_module.xm");
 		assert!(module.is_ok());
 	}
 
 	#[test]
 	fn create_from_stream_doesnt_explode_sometimes() {
-		let module = test_helper::stream_file_as_module("empty_module.xm");
+		let mut module = test_helper::stream_file_as_module("empty_module.xm");
 		assert!(module.is_ok());
 	}
 }

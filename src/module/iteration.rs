@@ -7,17 +7,17 @@ use super::super::mod_command::ModCommand;
 use std::os::raw::c_int;
 
 pub struct Pattern<'m> {
-	module: &'m Module,
+	module: &'m mut Module,
 	num: i32,
 }
 
-pub struct Row<'m> {
-	pattern: &'m Pattern<'m>,
+pub struct Row<'p, 'm:'p> {
+	pattern: &'p mut Pattern<'m>,
 	num: i32,
 }
 
-pub struct Cell<'m> {
-	row: &'m Row<'m>,
+pub struct Cell<'r, 'p:'r, 'm:'p> {
+	row: &'r mut Row<'p, 'm>,
 	channel_num: i32,
 }
 
@@ -30,7 +30,7 @@ impl Module {
 	/// ### Returns
 	/// A Pattern wrapper for the pattern found at the given order position of the current sequence,
 	/// or None if no such pattern exists.
-	pub fn get_pattern_by_order(&self, order_num: i32) -> Option<Pattern> {
+	pub fn get_pattern_by_order(&mut self, order_num: i32) -> Option<Pattern> {
 		let pattern_num = unsafe {
 			openmpt_sys::openmpt_module_get_order_pattern(self.inner, order_num)
 		};
@@ -49,7 +49,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// A Pattern wrapper for the pattern, or None if no such pattern exists.
-	pub fn get_pattern_by_number (&self, pattern_num: i32) -> Option<Pattern> {
+	pub fn get_pattern_by_number (&mut self, pattern_num: i32) -> Option<Pattern> {
 		if pattern_num < 0 || pattern_num >= self.get_num_patterns() {
 			None
 		} else {
@@ -61,7 +61,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of distinct patterns in the module.
-	pub fn get_num_patterns (&self) -> i32 {
+	pub fn get_num_patterns (&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_patterns(self.inner)
 		}
@@ -71,7 +71,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of orders in the current sequence of the module.
-	pub fn get_num_orders (&self) -> i32 {
+	pub fn get_num_orders (&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_orders(self.inner)
 		}
@@ -84,7 +84,7 @@ impl Module {
 	///
 	/// ### Remarks
 	/// The number of pattern channels is completely independent of the number of output channels.
-	pub fn get_num_channels (&self) -> i32 {
+	pub fn get_num_channels (&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_channels(self.inner)
 		}
@@ -97,7 +97,7 @@ impl Module {
 	///
 	/// ### Remarks
 	/// Instruments are a layer on top of samples, and are not supported by all module formats.
-	pub fn get_num_instruments (&self) -> i32 {
+	pub fn get_num_instruments (&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_instruments(self.inner)
 		}
@@ -107,7 +107,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of sample slots in the module.
-	pub fn get_num_samples (&self) -> i32 {
+	pub fn get_num_samples (&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_samples(self.inner)
 		}
@@ -121,7 +121,7 @@ impl Module {
 	/// This includes any "hidden" songs (songs that share the same sequence,
 	/// but start at different order indices) and "normal" sub-songs
 	/// or "sequences" (if the format supports them).
-	pub fn get_num_subsongs (&self) -> i32 {
+	pub fn get_num_subsongs (&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_num_subsongs(self.inner)
 		}
@@ -134,7 +134,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The instrument name.
-	pub fn get_instrument_name (&self, instrument_num: i32) -> String {
+	pub fn get_instrument_name (&mut self, instrument_num: i32) -> String {
 		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_instrument_name(self.inner, instrument_num)
 		};
@@ -149,7 +149,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The sample name.
-	pub fn get_sample_name (&self, sample_num: i32) -> String {
+	pub fn get_sample_name (&mut self, sample_num: i32) -> String {
 		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_sample_name(self.inner, sample_num)
 		};
@@ -164,7 +164,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The channel name.
-	pub fn get_channel_name (&self, channel_num: i32) -> String {
+	pub fn get_channel_name (&mut self, channel_num: i32) -> String {
 		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_channel_name(self.inner, channel_num)
 		};
@@ -179,7 +179,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The sub-song name.
-	pub fn get_subsong_name (&self, subsong_num: i32) -> String {
+	pub fn get_subsong_name (&mut self, subsong_num: i32) -> String {
 		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_subsong_name(self.inner, subsong_num)
 		};
@@ -196,7 +196,7 @@ impl<'m> Pattern<'m> {
 	///
 	/// ### Returns
 	/// A Row wrapper for the row, or None if no such row exists.
-	pub fn get_row_by_number (&'m self, row_num: i32) -> Option<Row<'m>> {
+	pub fn get_row_by_number<'p> (&'p mut self, row_num: i32) -> Option<Row<'p, 'm>> {
 		let pattern_num_rows = self.get_num_rows();
 
 		assert_ne!(pattern_num_rows, 0); // Pattern does not exist
@@ -212,7 +212,7 @@ impl<'m> Pattern<'m> {
 	///
 	/// ### Returns
 	/// The pattern name.
-	pub fn get_name (&self) -> String {
+	pub fn get_name (&mut self) -> String {
 		// Order names apparently just gives you the name of the pattern
 		let opt_string = get_string!{
 			openmpt_sys::openmpt_module_get_pattern_name(self.module.inner, self.num)
@@ -225,14 +225,14 @@ impl<'m> Pattern<'m> {
 	///
 	/// ### Returns
 	/// The number of rows in the pattern.
-	pub fn get_num_rows(&self) -> i32 {
+	pub fn get_num_rows(&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_pattern_num_rows(self.module.inner, self.num)
 		}
 	}
 }
 
-impl<'m> Row<'m> {
+impl<'p, 'm> Row<'p, 'm> {
 	/// Get pattern cell by pattern channel.
 	///
 	/// ### Parameters
@@ -240,7 +240,7 @@ impl<'m> Row<'m> {
 	///
 	/// ### Returns
 	/// A Cell wrapper for the cell, or None if the channel doesn't exist.
-	pub fn get_cell_by_channel (&'m self, channel_num: i32) -> Option<Cell<'m>> {
+	pub fn get_cell_by_channel<'r> (&'r mut self, channel_num: i32) -> Option<Cell<'r, 'p, 'm>> {
 		assert!(self.num < self.pattern.get_num_rows());
 		assert!(self.num >= 0);
 
@@ -254,12 +254,12 @@ impl<'m> Row<'m> {
 	}
 }
 
-impl <'m> Cell<'m> {
+impl <'r, 'p, 'm> Cell<'r, 'p, 'm> {
 	/// Get all of the cell's content as a ModCommand.
 	///
 	/// ### Returns
 	/// A ModCommand containing the raw cell data as a tagged union, for easy pattern-matching.
-	pub fn get_data(&self) -> Result<ModCommand, String> {
+	pub fn get_data(&mut self) -> Result<ModCommand, String> {
 		ModCommand::new(
 			self.get_data_by_command(ModuleCommandIndex::Note),
 			self.get_data_by_command(ModuleCommandIndex::Instrument),
@@ -277,7 +277,7 @@ impl <'m> Cell<'m> {
 	///
 	/// ### Returns
 	/// The internal, raw cell data at the given command index.
-	pub fn get_data_by_command(&self, command : ModuleCommandIndex) -> u8 {
+	pub fn get_data_by_command(&mut self, command : ModuleCommandIndex) -> u8 {
 		unsafe{
 			openmpt_sys::openmpt_module_get_pattern_row_channel_command(
 				self.row.pattern.module.inner,
@@ -297,7 +297,7 @@ impl <'m> Cell<'m> {
 	///
 	/// ### Returns
 	/// The formatted pattern data for that cell.
-	pub fn get_formatted(&self, width: usize, pad: bool) -> String {
+	pub fn get_formatted(&mut self, width: usize, pad: bool) -> String {
 		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_format_pattern_row_channel(
 				self.row.pattern.module.inner,
@@ -319,7 +319,7 @@ impl <'m> Cell<'m> {
 	///
 	/// ### Returns
 	/// The formatted pattern data for that cell, at the given command index.
-	pub fn get_formatted_by_command(&self, command: ModuleCommandIndex) -> String {
+	pub fn get_formatted_by_command(&mut self, command: ModuleCommandIndex) -> String {
 		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_format_pattern_row_channel_command(
 				self.row.pattern.module.inner,
@@ -341,7 +341,7 @@ impl <'m> Cell<'m> {
 	///
 	/// ### Returns
 	/// The highlighting string for the formatted pattern data as retrieved by `get_formatted` for that cell.
-	pub fn get_highlight(&self, width: usize, pad: bool) -> String {
+	pub fn get_highlight(&mut self, width: usize, pad: bool) -> String {
 		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_highlight_pattern_row_channel(
 				self.row.pattern.module.inner,
@@ -363,7 +363,7 @@ impl <'m> Cell<'m> {
 	///
 	/// ### Returns
 	/// The highlighting string for the formatted pattern data as retrieved by `get_formatted` for that cell, at the given command index.
-	pub fn get_highlight_by_command(&self, command: ModuleCommandIndex) -> String {
+	pub fn get_highlight_by_command(&mut self, command: ModuleCommandIndex) -> String {
 		let opt_string = get_string!({
 			openmpt_sys::openmpt_module_highlight_pattern_row_channel_command(
 				self.row.pattern.module.inner,
@@ -410,10 +410,10 @@ mod tests {
 	#[test]
 	fn empty_module_list_names() {
 		// None of these should panic from a null return value
-		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 
 		if module.get_num_orders() > 0 {
-			let pattern = module.get_pattern_by_order(0).unwrap();
+			let mut pattern = module.get_pattern_by_order(0).unwrap();
 			println!("Name of Pattern #0 : {:?}", pattern.get_name());
 		}
 
@@ -440,22 +440,22 @@ mod tests {
 	}
 
 	fn iterative_reading(file_name : &str) {
-		let module = test_helper::load_file_as_module(file_name).unwrap();
+		let mut module = test_helper::load_file_as_module(file_name).unwrap();
 		let num_orders = module.get_num_orders();
 		let num_channels = module.get_num_channels();
 
 		for order_num in 0..num_orders {
-			let pattern = module.get_pattern_by_order(order_num).unwrap();
+			let mut pattern = module.get_pattern_by_order(order_num).unwrap();
 			let num_rows = pattern.get_num_rows();
 
 			println!("Checking pattern #{} ({} rows, {} channels)", order_num, num_rows, num_channels);
 
 			for row_num in 0..num_rows {
-				let row = pattern.get_row_by_number(row_num).unwrap();
+				let mut row = pattern.get_row_by_number(row_num).unwrap();
 				let mut row_string = String::new();
 
 				for channel_num in 0..num_channels {
-					let cell = row.get_cell_by_channel(channel_num).unwrap();
+					let mut cell = row.get_cell_by_channel(channel_num).unwrap();
 					assert!(cell.get_data().is_ok());
 
 					if channel_num != 0 { row_string.push_str("|"); }

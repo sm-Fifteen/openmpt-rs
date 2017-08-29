@@ -101,7 +101,7 @@ impl Ctl {
 
 impl Module {
 	/// Get whether or not to avoid loading samples into memory.
-	pub fn ctl_get_load_skip_samples(&self) -> Option<bool> {
+	pub fn ctl_get_load_skip_samples(&mut self) -> Option<bool> {
 		let return_val = self.ctl_get(LOAD_SKIP_SAMPLES);
 
 		if let Some(ref str_val) = return_val {
@@ -117,7 +117,7 @@ impl Module {
 	}
 
 	/// Get whether or not to avoid loading patterns into memory.
-	pub fn ctl_get_load_skip_patterns(&self) -> Option<bool> {
+	pub fn ctl_get_load_skip_patterns(&mut self) -> Option<bool> {
 		let return_val = self.ctl_get(LOAD_SKIP_PATTERNS);
 
 		if let Some(ref str_val) = return_val {
@@ -133,7 +133,7 @@ impl Module {
 	}
 
 	/// Get whether or not to avoid loading plugins.
-	pub fn ctl_get_load_skip_plugins(&self) -> Option<bool> {
+	pub fn ctl_get_load_skip_plugins(&mut self) -> Option<bool> {
 		let return_val = self.ctl_get(LOAD_SKIP_PLUGINS);
 
 		if let Some(ref str_val) = return_val {
@@ -149,7 +149,7 @@ impl Module {
 	}
 
 	/// Get whether or not to avoid pre-initializing sub-songs.
-	pub fn ctl_get_load_skip_subsongs_init(&self) -> Option<bool> {
+	pub fn ctl_get_load_skip_subsongs_init(&mut self) -> Option<bool> {
 		let return_val = self.ctl_get(LOAD_SKIP_SUBSONGS_INIT);
 
 		if let Some(ref str_val) = return_val {
@@ -165,7 +165,7 @@ impl Module {
 	}
 
 	/// Get whether or not to sync sample playback when seeking.
-	pub fn ctl_get_seek_sync_samples(&self) -> Option<bool> {
+	pub fn ctl_get_seek_sync_samples(&mut self) -> Option<bool> {
 		let return_val = self.ctl_get(SEEK_SYNC_SAMPLES);
 
 		if let Some(ref str_val) = return_val {
@@ -181,7 +181,7 @@ impl Module {
 	}
 
 	/// Get the floating point tempo factor.
-	pub fn ctl_get_play_tempo_factor(&self) -> Option<c_double> {
+	pub fn ctl_get_play_tempo_factor(&mut self) -> Option<c_double> {
 		let return_val = self.ctl_get(PLAY_TEMPO_FACTOR);
 
 		if let Some(ref str_val) = return_val {
@@ -197,7 +197,7 @@ impl Module {
 	}
 
 	/// Get the floating point pitch factor.
-	pub fn ctl_get_play_pitch_factor(&self) -> Option<c_double> {
+	pub fn ctl_get_play_pitch_factor(&mut self) -> Option<c_double> {
 		let return_val = self.ctl_get(PLAY_PITCH_FACTOR);
 
 		if let Some(ref str_val) = return_val {
@@ -213,7 +213,7 @@ impl Module {
 	}
 
 	/// Get the dither algorithm that is used for the 16 bit versions of the rendering methods.
-	pub fn ctl_get_dither(&self) -> Option<DitherMode> {
+	pub fn ctl_get_dither(&mut self) -> Option<DitherMode> {
 		let return_val = self.ctl_get(DITHER);
 
 		if let Some(ref str_val) = return_val {
@@ -235,7 +235,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The associated ctl value, or None on failure.
-	pub fn ctl_get(&self, key: &str) -> Option<String> {
+	pub fn ctl_get(&mut self, key: &str) -> Option<String> {
 		get_string_with_string!(key, {
 			openmpt_sys::openmpt_module_ctl_get(self.inner, key)
 		})
@@ -268,7 +268,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// A semicolon-separated list containing all supported ctl keys.
-	pub fn get_ctls(&self) -> String {
+	pub fn get_ctls(&mut self) -> String {
 		let opt_string = get_string! {
 			openmpt_sys::openmpt_module_get_ctls(self.inner)
 		};
@@ -286,7 +286,7 @@ mod tests {
 
 	#[test]
 	fn all_known_ctls_are_supported() {
-		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 		let keys = module.get_ctls();
 		
 		assert!(keys.contains(LOAD_SKIP_SAMPLES));
@@ -301,7 +301,7 @@ mod tests {
 
 	#[test]
 	fn default_ctls_are_respected() {
-		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 		
 		assert_eq!(module.ctl_get_load_skip_samples().unwrap(), false);
 		assert_eq!(module.ctl_get_load_skip_patterns().unwrap(), false);
@@ -326,7 +326,7 @@ mod tests {
 			Ctl::DitherMode16Bit(DitherMode::Simple),
 		};
 
-		let module = test_helper::load_file_as_module_with_ctls("empty_module.xm", Logger::None, &initial_ctls).unwrap();
+		let mut module = test_helper::load_file_as_module_with_ctls("empty_module.xm", Logger::None, &initial_ctls).unwrap();
 		
 		assert_eq!(module.ctl_get_load_skip_samples().unwrap(), true);
 		assert_eq!(module.ctl_get_load_skip_patterns().unwrap(), true);
@@ -340,7 +340,7 @@ mod tests {
 
 	#[test]
 	fn clean_result_for_getting_unknown_ctl() {
-		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 
 		assert!(module.ctl_get("invalid_ctl").is_none());
 	}

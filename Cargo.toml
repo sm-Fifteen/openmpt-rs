@@ -3,7 +3,7 @@ name = "openmpt"
 description = "Safe bindings for libopenmpt"
 license="BSD-3-Clause-Attribution"
 repository = "https://github.com/sm-Fifteen/openmpt-rs"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["sm-Fifteen <riboshom@hotmail.com>"]
 include = [
     "**/*.rs",

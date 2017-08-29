@@ -65,7 +65,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// Current song position in seconds.
-	pub fn get_position_seconds(&self) -> c_double {
+	pub fn get_position_seconds(&mut self) -> c_double {
 		unsafe {
 			openmpt_sys::openmpt_module_get_position_seconds(self.inner)
 		}
@@ -75,7 +75,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The current order at which the module is being played back.
-	pub fn get_current_order(&self) -> i32 {
+	pub fn get_current_order(&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_order(self.inner)
 		}
@@ -85,7 +85,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The current pattern that is being played.
-	pub fn get_current_pattern(&self) -> i32 {
+	pub fn get_current_pattern(&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_pattern(self.inner)
 		}
@@ -95,7 +95,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The current row at which the current pattern is being played.
-	pub fn get_current_row(&self) -> i32 {
+	pub fn get_current_row(&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_row(self.inner)
 		}
@@ -105,7 +105,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The current speed in ticks per row.
-	pub fn get_current_speed(&self) -> i32 {
+	pub fn get_current_speed(&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_speed(self.inner)
 		}
@@ -115,7 +115,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The current tempo in tracker units. The exact meaning of this value depends on the tempo mode being used.
-	pub fn get_current_tempo(&self) -> i32 {
+	pub fn get_current_tempo(&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_tempo(self.inner)
 		}
@@ -125,7 +125,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// The amount of sample channels that are currently being rendered.
-	pub fn get_current_playing_channels(&self) -> i32 {
+	pub fn get_current_playing_channels(&mut self) -> i32 {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_playing_channels(self.inner)
 		}
@@ -135,7 +135,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// Approximate duration of current sub-song in seconds.
-	pub fn get_duration_seconds(&self) -> c_float {
+	pub fn get_duration_seconds(&mut self) -> c_float {
 		// Depends on the current subsong
 		unsafe {
 			openmpt_sys::openmpt_module_get_duration_seconds(self.inner)
@@ -153,7 +153,7 @@ impl Module {
 	/// ### Remarks
 	/// The returned value is solely based on the note velocity and
 	/// does not take the actual waveform of the playing sample into account.
-	pub fn get_current_channel_vu_mono(&self, channel_num: i32) -> c_float {
+	pub fn get_current_channel_vu_mono(&mut self, channel_num: i32) -> c_float {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_channel_vu_mono(self.inner, channel_num)
 		}
@@ -170,7 +170,7 @@ impl Module {
 	/// ### Remarks
 	/// The returned value is solely based on the note velocity and
 	/// does not take the actual waveform of the playing sample into account.
-	pub fn get_current_channel_vu_left(&self, channel_num: i32) -> c_float {
+	pub fn get_current_channel_vu_left(&mut self, channel_num: i32) -> c_float {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_channel_vu_left(self.inner, channel_num)
 		}
@@ -187,7 +187,7 @@ impl Module {
 	/// ### Remarks
 	/// The returned value is solely based on the note velocity and
 	/// does not take the actual waveform of the playing sample into account.
-	pub fn get_current_channel_vu_right(&self, channel_num: i32) -> c_float {
+	pub fn get_current_channel_vu_right(&mut self, channel_num: i32) -> c_float {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_channel_vu_right(self.inner, channel_num)
 		}
@@ -204,7 +204,7 @@ impl Module {
 	/// ### Remarks
 	/// The returned value is solely based on the note velocity and
 	/// does not take the actual waveform of the playing sample into account.
-	pub fn get_current_channel_vu_rear_left(&self, channel_num: i32) -> c_float {
+	pub fn get_current_channel_vu_rear_left(&mut self, channel_num: i32) -> c_float {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_channel_vu_rear_left(self.inner, channel_num)
 		}
@@ -221,7 +221,7 @@ impl Module {
 	/// ### Remarks
 	/// The returned value is solely based on the note velocity and
 	/// does not take the actual waveform of the playing sample into account.
-	pub fn get_current_channel_vu_rear_right(&self, channel_num: i32) -> c_float {
+	pub fn get_current_channel_vu_rear_right(&mut self, channel_num: i32) -> c_float {
 		unsafe {
 			openmpt_sys::openmpt_module_get_current_channel_vu_rear_right(self.inner, channel_num)
 		}

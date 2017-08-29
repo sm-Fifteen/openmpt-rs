@@ -56,14 +56,14 @@ impl Module {
 	///
 	/// ### Returns
 	/// The associated value for key, or None in case of error.
-	pub fn get_metadata(&self, key : MetadataKey) -> Option<String> {
+	pub fn get_metadata(&mut self, key : MetadataKey) -> Option<String> {
 		let key = key.to_str();
 		get_string_with_string! (key, {
 			openmpt_sys::openmpt_module_get_metadata(self.inner, key)
 		})
 	}
 
-	pub fn get_metadata_keys(&self) -> String {
+	pub fn get_metadata_keys(&mut self) -> String {
 		let opt_string = get_string! {
 			openmpt_sys::openmpt_module_get_metadata_keys(self.inner)
 		};
@@ -79,14 +79,14 @@ mod tests {
 
 	#[test]
 	fn dummy_file_is_xm() {
-		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 		assert_eq!(module.get_metadata(MetadataKey::TypeExt).unwrap(), "xm");
 		assert_eq!(module.get_metadata(MetadataKey::TypeName).unwrap(), "FastTracker II");
 	}
 
 	#[test]
 	fn all_known_metadata_keys_are_supported() {
-		let module = test_helper::load_file_as_module("empty_module.xm").unwrap();
+		let mut module = test_helper::load_file_as_module("empty_module.xm").unwrap();
 		let keys = module.get_metadata_keys();
 		
 		assert!(keys.contains(MetadataKey::TypeExt.to_str()));
