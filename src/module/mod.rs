@@ -26,6 +26,7 @@ pub mod metadata;
 pub mod iteration;
 pub mod render;
 pub mod stream;
+pub mod current;
 #[cfg(test)] mod test_helper;
 
 pub struct Module {

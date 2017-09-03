@@ -57,7 +57,7 @@ impl Module {
 	pub fn set_position_order_row(&mut self, order: i32, row: i32) -> c_double {
 		// Returns current position on failure
 		unsafe {
-			openmpt_sys::openmpt_module_set_position_order_row(self.inner, seconds)
+			openmpt_sys::openmpt_module_set_position_order_row(self.inner, order, row)
 		}
 	}
 
@@ -135,7 +135,7 @@ impl Module {
 	///
 	/// ### Returns
 	/// Approximate duration of current sub-song in seconds.
-	pub fn get_duration_seconds(&mut self) -> c_float {
+	pub fn get_duration_seconds(&mut self) -> c_double {
 		// Depends on the current subsong
 		unsafe {
 			openmpt_sys::openmpt_module_get_duration_seconds(self.inner)
