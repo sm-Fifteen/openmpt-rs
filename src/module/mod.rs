@@ -54,7 +54,7 @@ impl Module {
 	///
 	/// ### Remarks
 	/// The input data can be discarded after a Module has been constructed successfully.
-	pub fn create_from_memory(buffer : &mut Vec<u8>, logger : Logger, init_ctls : &[ctls::Ctl]) -> Result<Module, ()> {
+	pub fn create_from_memory(buffer : &[u8], logger : Logger, init_ctls : &[ctls::Ctl]) -> Result<Module, ()> {
 		let module_ptr = unsafe {
 			openmpt_sys::openmpt_module_create_from_memory(
 				buffer.as_ptr() as *const _,
