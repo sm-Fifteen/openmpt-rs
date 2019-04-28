@@ -20,7 +20,7 @@ pub trait SeekableStream : ModuleStream {
 
 impl<T> ModuleStream for T where T:Read {
 	unsafe extern "C" fn openmpt_read(stream: *mut c_void, dst: *mut c_void, bytes: usize) -> usize {
-		let mut stream_source: &mut T = &mut *(stream as *mut T);
+		let stream_source: &mut T = &mut *(stream as *mut T);
 		let mut buf = vec![0;bytes];
 
 		//println!("Read {} bytes", bytes);
@@ -48,7 +48,7 @@ impl<T> ModuleStream for T where T:Read {
 
 impl<T> SeekableStream for T where T:Read+Seek {
 	unsafe extern "C" fn openmpt_seek(stream: *mut c_void, offset: i64, whence: c_int) -> c_int {
-		let mut stream_source: &mut T = &mut *(stream as *mut T);
+		let stream_source: &mut T = &mut *(stream as *mut T);
 		
 		let whence = match whence {
 			0 => SeekFrom::Start(offset as u64),
@@ -64,7 +64,7 @@ impl<T> SeekableStream for T where T:Read+Seek {
 	}
 
 	unsafe extern "C" fn openmpt_tell(stream: *mut c_void) -> i64 {
-		let mut stream_source: &mut T = &mut *(stream as *mut T);
+		let stream_source: &mut T = &mut *(stream as *mut T);
 		match stream_source.seek(SeekFrom::Current(0)) {
 			Ok(pos) => pos as i64,
 			Err(_) => -1,

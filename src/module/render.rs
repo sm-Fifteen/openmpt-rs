@@ -32,8 +32,8 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of frames actually rendered, or 0 if the end of song has been reached.
-	pub fn read_mono(&mut self, sample_rate : i32, mono: &mut Vec<i16>) -> usize {
-		let count = mono.capacity();
+	pub fn read_mono(&mut self, sample_rate : i32, mono: &mut [i16]) -> usize {
+		let count = mono.len();
 
 		unsafe {
 			openmpt_sys::openmpt_module_read_mono(self.inner, sample_rate, count, mono.as_mut_ptr())
@@ -48,8 +48,8 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of frames actually rendered, or 0 if the end of song has been reached.
-	pub fn read_float_mono(&mut self, sample_rate : i32, mono: &mut Vec<c_float>) -> usize {
-		let count = mono.capacity();
+	pub fn read_float_mono(&mut self, sample_rate : i32, mono: &mut [c_float]) -> usize {
+		let count = mono.len();
 		
 		unsafe {
 			openmpt_sys::openmpt_module_read_float_mono(self.inner, sample_rate, count, mono.as_mut_ptr())
@@ -65,8 +65,8 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of frames actually rendered, or 0 if the end of song has been reached.
-	pub fn read_stereo(&mut self, sample_rate : i32, left: &mut Vec<i16>, right: &mut Vec<i16>) -> usize {
-		let count = min(left.capacity(), right.capacity());
+	pub fn read_stereo(&mut self, sample_rate : i32, left: &mut [i16], right: &mut [i16]) -> usize {
+		let count = min(left.len(), right.len());
 		
 		unsafe {
 			openmpt_sys::openmpt_module_read_stereo(self.inner, sample_rate, count, left.as_mut_ptr(), right.as_mut_ptr())
@@ -82,8 +82,8 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of frames actually rendered, or 0 if the end of song has been reached.
-	pub fn read_float_stereo(&mut self, sample_rate : i32, left: &mut Vec<c_float>, right: &mut Vec<c_float>) -> usize {
-		let count = min(left.capacity(), right.capacity());
+	pub fn read_float_stereo(&mut self, sample_rate : i32, left: &mut [c_float], right: &mut [c_float]) -> usize {
+		let count = min(left.len(), right.len());
 
 		unsafe {
 			openmpt_sys::openmpt_module_read_float_stereo(self.inner, sample_rate, count, left.as_mut_ptr(), right.as_mut_ptr())
@@ -98,8 +98,8 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of frames actually rendered (up to half of the buffer's capacity), or 0 if the end of song has been reached.
-	pub fn read_interleaved_stereo(&mut self, sample_rate : i32, interleaved_stereo: &mut Vec<i16>) -> usize {
-		let count = interleaved_stereo.capacity() >> 1; // Buffer needs to be of at least size count*2
+	pub fn read_interleaved_stereo(&mut self, sample_rate : i32, interleaved_stereo: &mut [i16]) -> usize {
+		let count = interleaved_stereo.len() >> 1; // Buffer needs to be of at least size count*2
 
 		unsafe {
 			openmpt_sys::openmpt_module_read_interleaved_stereo(self.inner, sample_rate, count, interleaved_stereo.as_mut_ptr())
@@ -114,8 +114,8 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of frames actually rendered (up to half of the buffer's capacity), or 0 if the end of song has been reached.
-	pub fn read_interleaved_float_stereo(&mut self, sample_rate : i32, interleaved_stereo: &mut Vec<c_float>) -> usize {
-		let count = interleaved_stereo.capacity() >> 1; // Buffer needs to be of at least size count*2
+	pub fn read_interleaved_float_stereo(&mut self, sample_rate : i32, interleaved_stereo: &mut [c_float]) -> usize {
+		let count = interleaved_stereo.len() >> 1; // Buffer needs to be of at least size count*2
 		
 		unsafe {
 			openmpt_sys::openmpt_module_read_interleaved_float_stereo(self.inner, sample_rate, count, interleaved_stereo.as_mut_ptr())
@@ -133,8 +133,8 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of frames actually rendered, or 0 if the end of song has been reached.
-	pub fn read_quad(&mut self, sample_rate : i32, left: &mut Vec<i16>, right: &mut Vec<i16>, rear_left: &mut Vec<i16>, rear_right: &mut Vec<i16>) -> usize {
-		let count = min(min(left.capacity(), right.capacity()), min(rear_left.capacity(), rear_right.capacity()));
+	pub fn read_quad(&mut self, sample_rate : i32, left: &mut [i16], right: &mut [i16], rear_left: &mut [i16], rear_right: &mut [i16]) -> usize {
+		let count = min(min(left.len(), right.len()), min(rear_left.len(), rear_right.len()));
 		
 		unsafe {
 			openmpt_sys::openmpt_module_read_quad(self.inner, sample_rate, count, left.as_mut_ptr(), right.as_mut_ptr(), rear_left.as_mut_ptr(), rear_right.as_mut_ptr())
@@ -152,8 +152,8 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of frames actually rendered, or 0 if the end of song has been reached.
-	pub fn read_float_quad(&mut self, sample_rate : i32, left: &mut Vec<c_float>, right: &mut Vec<c_float>, rear_left: &mut Vec<c_float>, rear_right: &mut Vec<c_float>) -> usize {
-		let count = min(min(left.capacity(), right.capacity()), min(rear_left.capacity(), rear_right.capacity()));
+	pub fn read_float_quad(&mut self, sample_rate : i32, left: &mut [c_float], right: &mut [c_float], rear_left: &mut [c_float], rear_right: &mut [c_float]) -> usize {
+		let count = min(min(left.len(), right.len()), min(rear_left.len(), rear_right.len()));
 		
 		unsafe {
 			openmpt_sys::openmpt_module_read_float_quad(self.inner, sample_rate, count, left.as_mut_ptr(), right.as_mut_ptr(), rear_left.as_mut_ptr(), rear_right.as_mut_ptr())
@@ -168,8 +168,8 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of frames actually rendered (up to one fourth of the buffer's capacity), or 0 if the end of song has been reached.
-	pub fn read_interleaved_quad(&mut self, sample_rate : i32, interleaved_quad: &mut Vec<i16>) -> usize {
-		let count = interleaved_quad.capacity() >> 2; // Buffer needs to be of at least size count*4
+	pub fn read_interleaved_quad(&mut self, sample_rate : i32, interleaved_quad: &mut [i16]) -> usize {
+		let count = interleaved_quad.len() >> 2; // Buffer needs to be of at least size count*4
 
 		unsafe {
 			openmpt_sys::openmpt_module_read_interleaved_quad(self.inner, sample_rate, count, interleaved_quad.as_mut_ptr())
@@ -184,8 +184,8 @@ impl Module {
 	///
 	/// ### Returns
 	/// The number of frames actually rendered (up to one fourth of the buffer's capacity), or 0 if the end of song has been reached.
-	pub fn read_interleaved_float_quad(&mut self, sample_rate : i32, interleaved_quad: &mut Vec<c_float>) -> usize {
-		let count = interleaved_quad.capacity() >> 2; // Buffer needs to be of at least size count*4
+	pub fn read_interleaved_float_quad(&mut self, sample_rate : i32, interleaved_quad: &mut [c_float]) -> usize {
+		let count = interleaved_quad.len() >> 2; // Buffer needs to be of at least size count*4
 		
 		unsafe {
 			openmpt_sys::openmpt_module_read_interleaved_float_quad(self.inner, sample_rate, count, interleaved_quad.as_mut_ptr())
