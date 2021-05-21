@@ -41,8 +41,8 @@ impl MetadataKey {
 			ModuleArtist => "artist",
 			ModuleTracker => "tracker",
 			ModuleSaveDate => "date",
-			SongMessage => "message",
-			SongMessageOrInstruments => "message_raw",
+			SongMessage => "message_raw",
+			SongMessageOrInstruments => "message",
 			LoadWarnings => "warnings",
 		}
 	}
