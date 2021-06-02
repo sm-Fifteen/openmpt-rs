@@ -33,6 +33,8 @@ pub struct Module {
 	inner : *mut openmpt_sys::openmpt_module,
 }
 
+unsafe impl Send for Module { }
+
 impl Drop for Module {
 	fn drop(&mut self) {
 		unsafe {
