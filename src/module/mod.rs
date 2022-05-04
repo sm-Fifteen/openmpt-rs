@@ -33,6 +33,9 @@ pub struct Module {
 	inner : *mut openmpt_sys::openmpt_module,
 }
 
+// According to the libopenmpt docs: "Consecutive accesses can happen from different threads."
+unsafe impl Send for Module {}
+
 impl Drop for Module {
 	fn drop(&mut self) {
 		unsafe {
